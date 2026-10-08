@@ -43,7 +43,7 @@ export default function Index({ students }: { students: any[] }) {
                                             <td className="px-6 py-4">{student.full_name}</td>
                                             <td className="px-6 py-4">{student.joined_year}</td>
                                             <td className="px-6 py-4 text-right">
-                                                <button className="font-medium text-indigo-600 hover:underline dark:text-indigo-500">Edit</button>
+                                                <Link href={route('students.edit', student.id)} className="font-medium text-indigo-600 hover:underline dark:text-indigo-500">Edit</Link>
                                             </td>
                                         </tr>
                                     ))}

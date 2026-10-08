@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 export default function Edit({ student }: { student: any }) {
@@ -17,12 +17,6 @@ export default function Edit({ student }: { student: any }) {
         e.preventDefault();
         put(route('students.update', student.id));
     };
-
-    const confirmDelete = () => {
-        if(confirm('Apakah Anda yakin ingin menghapus siswa ini secara permanen beserta data presensinya?')) {
-            useForm().delete(route('students.destroy', student.id));
-        }
-    }
 
     return (
         <AuthenticatedLayout
@@ -82,15 +76,6 @@ export default function Edit({ student }: { student: any }) {
 
                                 <div className="flex items-center justify-between gap-4">
                                     <PrimaryButton disabled={processing}>Simpan Perubahan</PrimaryButton>
-                                    
-                                    <Link 
-                                        href={route('students.destroy', student.id)} 
-                                        method="delete" 
-                                        as="button" 
-                                        className="text-red-500 font-semibold hover:underline"
-                                    >
-                                        Hapus Akun Siswa
-                                    </Link>
                                 </div>
                             </form>
                         </div>
