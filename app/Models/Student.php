@@ -13,7 +13,16 @@ class Student extends Model
         'student_number',
         'full_name',
         'joined_year',
+        'profile_photo_path', 'phone', 'class_name', 'email', 'address',
     ];
+
+    protected $hidden = ['profile_photo_path'];
+    protected $appends = ['profile_photo_url'];
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return $this->profile_photo_path ? route('students.photo', $this->id) : null;
+    }
 
     public function user(): BelongsTo
     {

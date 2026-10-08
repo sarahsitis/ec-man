@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\StudentProfileService;
+use App\Models\Student;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,23 +24,29 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'student' => $request->user()->student,
         ]);
     }
 
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request, StudentProfileService $service): RedirectResponse
     {
-        DB::transaction(function () use ($request) {
-            $user = $request->user();
-            $user->fill($request->validated())->save();
-            $user->student?->update([
-                'full_name' => $user->name,
-                'student_number' => $user->username,
+        $user = $request->user();
+        if (!$user->isPembina()) {
+            // Accommodate existing example accounts without a member record.
+            $student = $user->student ?? new Student([
+                'user_id' => $user->id, 'student_number' => $user->username,
+                'full_name' => $user->name, 'joined_year' => date('Y'),
             ]);
-        });
-
+            $service->save($student, $request->validated(), $request->file('profile_photo'));
+        } else {
+            DB::transaction(function () use ($user, $request) {
+                $user->fill($request->validated())->save();
+                $user->student?->update(['full_name' => $user->name, 'student_number' => $user->username]);
+            });
+        }
         return Redirect::route('profile.edit');
     }
 

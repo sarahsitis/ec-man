@@ -1,30 +1,25 @@
 <?php
-
 namespace App\Http\Requests;
 
-use App\Models\User;
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Services\StudentProfileService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
-    {
+    public function authorize(): bool { return $this->user() !== null; }
+    public function rules(): array {
+        if (!$this->user()->isPembina()) {
+            return array_merge(StudentProfileService::rules(), [
+                'name' => ['prohibited'], 'username' => ['prohibited'],
+                'full_name' => ['prohibited'], 'student_number' => ['prohibited'],
+            ]);
+        }
         return [
             'name' => ['required', 'string', 'max:255'],
-            'username' => [
-                'required',
-                'string',
-                'max:255',
+            'username' => ['required', 'string', 'max:255',
                 Rule::unique('users', 'username')->ignore($this->user()->id),
-                Rule::unique('students', 'student_number')->ignore($this->user()->student?->id),
-            ],
+                Rule::unique('students', 'student_number')->ignore($this->user()->student?->id)],
         ];
     }
 }

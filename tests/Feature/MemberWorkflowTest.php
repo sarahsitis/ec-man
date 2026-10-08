@@ -28,16 +28,17 @@ class MemberWorkflowTest extends TestCase
         ]);
     }
 
-    public function test_profile_update_synchronizes_member_without_email(): void
+    public function test_student_identity_change_is_rejected(): void
     {
         $user = $this->account('1001');
         $student = $this->member($user);
         $this->actingAs($user)->patch('/profile', [
             'name' => 'Nama Baru', 'username' => '1003',
-        ])->assertSessionHasNoErrors()->assertRedirect('/profile');
-        $this->assertSame('1003', $user->fresh()->username);
-        $this->assertSame('Nama Baru', $student->fresh()->full_name);
-        $this->assertSame('1003', $student->fresh()->student_number);
+            'full_name' => 'Nama Baru', 'student_number' => '1003',
+        ])->assertSessionHasErrors(['name', 'username', 'full_name', 'student_number']);
+        $this->assertSame('1001', $user->fresh()->username);
+        $this->assertSame('Pengguna Uji', $student->fresh()->full_name);
+        $this->assertSame('1001', $student->fresh()->student_number);
     }
 
     public function test_duplicate_profile_username_is_rejected(): void
