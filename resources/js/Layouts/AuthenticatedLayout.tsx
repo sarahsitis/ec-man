@@ -9,8 +9,24 @@ export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
+    const page = usePage();
+    const user = page.props.auth.user;
+    const historyTab = new URLSearchParams(page.url.split('?')[1] ?? '').get('status') === 'history';
 
+    const menus = user.role === 'panitia' ? [
+        { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
+        { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
+        { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+    ] : user.role === 'pembina' ? [
+        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
+        { label: 'Anggota', href: route('students.index'), active: route().current('students.*') },
+        { label: 'Penugasan & Penilaian', href: route('assessments.index'), active: route().current('assessments.*') },
+    ] : [
+        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+    ];
+    const flash = usePage().props.flash as {success?: string} | undefined;
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -27,24 +43,7 @@ export default function Authenticated({
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                {user.role === 'pembina' ? (
-                                    <>
-                                        <NavLink href={route('students.index')} active={route().current('students.*')}>Anggota</NavLink>
-                                        <NavLink href="#" active={false}>Kegiatan</NavLink>
-                                        <NavLink href="#" active={false}>Penilaian</NavLink>
-                                    </>
-                                ) : (
-                                    <>
-                                        <NavLink href="#" active={false}>Jadwalanku</NavLink>
-                                        <NavLink href="#" active={false}>My Progress</NavLink>
-                                    </>
-                                )}
+                                {menus.map(menu => <NavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</NavLink>)}
                             </div>
                         </div>
 
@@ -143,12 +142,7 @@ export default function Authenticated({
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                        {menus.map(menu => <ResponsiveNavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</ResponsiveNavLink>)}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
@@ -185,6 +179,7 @@ export default function Authenticated({
                 </header>
             )}
 
+            {flash?.success && <div role="status" className="mx-auto mt-4 max-w-7xl rounded bg-green-100 p-4 text-green-900">{flash.success}</div>}
             <main>{children}</main>
         </div>
     );

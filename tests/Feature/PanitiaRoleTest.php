@@ -62,6 +62,7 @@ class PanitiaRoleTest extends TestCase
     }
     public function test_dashboard_displays_panitia_role(): void {
         $user = $this->account('1003', 'panitia');
-        $this->actingAs($user)->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page->component('Dashboard')->where('auth.user.role', 'panitia'));
+        $this->actingAs($user)->get('/dashboard')->assertRedirect(route('panitia.dashboard'));
+        $this->get('/panitia/dashboard')->assertOk()->assertInertia(fn ($page) => $page->component('Panitia/Dashboard')->where('auth.user.role', 'panitia'));
     }
 }
