@@ -117,4 +117,51 @@ class AssessmentWorkflowTest extends TestCase
         ])->assertSessionHasErrors('title');
         $this->assertDatabaseCount('assessment_assignments',1);
     }
+
+    public function test_dashboard_and_lists_exclude_other_assessors_and_self_assessments(): void {
+        $own = $this->assignment();
+        $other = $this->account('1004', 'panitia');
+        $this->member($other, 'XII RPL 1');
+        $foreign = $own->replicate();
+        $foreign->fill(['title' => 'Other task', 'assessor_id' => $other->id])->save();
+        // Guard against invalid records from older imports or manual changes.
+        $self = $own->replicate();
+        $self->fill(['title' => 'Self task', 'student_id' => $this->panitia->student->id])->save();
+        $this->actingAs($this->panitia)->get('/panitia/dashboard')->assertInertia(fn ($page) =>
+            $page->where('counts.assigned', 1)->has('recent', 1)->where('recent.0.id', $own->id));
+        $this->get('/panitia/penugasan')->assertInertia(fn ($page) =>
+            $page->has('assignments.data', 1)->where('assignments.data.0.id', $own->id));
+        $this->get('/penilaian/'.$self->id)->assertForbidden();
+        $this->post('/penilaian/'.$self->id.'/rekomendasi', $this->recommendation())->assertForbidden();
+        $this->actingAs($this->student->user)->get('/panitia/dashboard')->assertForbidden();
+        $this->get('/panitia/penugasan')->assertForbidden();
+        $this->post('/penilaian', [])->assertForbidden();
+    }
+
+    public function test_rejected_recommendation_is_locked_and_not_published(): void {
+        $item = $this->assignment();
+        $this->actingAs($this->panitia)->post('/penilaian/'.$item->id.'/rekomendasi', $this->recommendation())->assertSessionHasNoErrors();
+        $this->actingAs($this->pembina)->post('/penilaian/'.$item->id.'/keputusan', [
+            'decision' => 'reject', 'review_note' => 'Bukti tidak sesuai tugas.',
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('rejected', $item->fresh()->status);
+        $this->assertNull($item->fresh()->final_score);
+        $this->actingAs($this->panitia)->post('/penilaian/'.$item->id.'/rekomendasi', $this->recommendation())->assertStatus(409);
+        $this->get('/panitia/penugasan?status=history')->assertInertia(fn ($page) => $page->has('assignments.data', 1));
+        $this->actingAs($this->student->user)->get('/perkembangan-saya')->assertInertia(fn ($page) => $page->has('grades.data', 0));
+    }
+
+    public function test_account_with_only_audit_history_cannot_be_deleted(): void {
+        $item = $this->assignment();
+        $formerReviewer = $this->account('former-reviewer', 'pembina');
+        \App\Models\AssessmentEvent::create([
+            'assessment_assignment_id' => $item->id, 'actor_id' => $formerReviewer->id,
+            'action' => 'deadline', 'details' => ['due_date' => null],
+        ]);
+        $this->actingAs($formerReviewer)->delete('/profile', ['password' => 'test-password'])
+            ->assertSessionHasErrors('password');
+        $this->assertAuthenticatedAs($formerReviewer);
+        $this->assertNotNull($formerReviewer->fresh());
+        $this->assertDatabaseCount('assessment_events', 1);
+    }
 }

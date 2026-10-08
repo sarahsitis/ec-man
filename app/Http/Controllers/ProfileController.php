@@ -6,6 +6,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\StudentProfileService;
 use App\Models\Student;
 use App\Models\AssessmentAssignment;
+use App\Models\AssessmentEvent;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -65,7 +66,8 @@ class ProfileController extends Controller
         $hasAssignments = AssessmentAssignment::where('assessor_id', $user->id)
             ->orWhere('created_by', $user->id)->orWhere('reviewed_by', $user->id)->exists();
         $hasGrades = $user->student && AssessmentAssignment::where('student_id', $user->student->id)->exists();
-        if ($hasAssignments || $hasGrades) {
+        $hasEvents = AssessmentEvent::where('actor_id', $user->id)->exists();
+        if ($hasAssignments || $hasGrades || $hasEvents) {
             throw ValidationException::withMessages(['password' => 'Akun ini terkait riwayat penilaian dan tidak dapat dihapus. Hubungi pembina.']);
         }
 

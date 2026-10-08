@@ -19,7 +19,7 @@ Route::get('/', function () {
 Route::get('/dashboard', function (Request $request) {
     if ($request->user()->isPanitia()) { return redirect()->route('panitia.dashboard'); }
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/panitia/dashboard', [AssessmentController::class, 'committeeDashboard'])->name('panitia.dashboard');
