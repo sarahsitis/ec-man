@@ -19,7 +19,7 @@ class StudentProfileFieldsTest extends TestCase
         $student = $this->member('1001');
         $this->actingAs($student->user)->patch('/profile', [
             'phone' => '081234567890', 'class_name' => 'XI RPL 1',
-            'email' => 'siswa@example.com', 'address' => 'Cianjur', 'role' => 'pembina',
+            'email' => 'siswa@example.com', 'address' => 'Cianjur',
         ])->assertSessionHasNoErrors()->assertRedirect('/profile');
         $student->refresh();
         $this->assertSame('081234567890', $student->phone);

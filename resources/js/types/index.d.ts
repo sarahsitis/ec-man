@@ -2,7 +2,7 @@ export interface User {
     id: number;
     name: string;
     username: string;
-    role: string;
+    role: 'pembina' | 'siswa' | 'panitia';
 }
 
 export type PageProps<

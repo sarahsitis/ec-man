@@ -60,7 +60,7 @@ class MemberWorkflowTest extends TestCase
         $this->actingAs($admin)->get('/students/'.$student->id.'/edit')->assertOk();
         $this->put('/students/'.$student->id, [
             'full_name' => 'Nama Baru', 'student_number' => '1003',
-            'joined_year' => 2025, 'role' => 'pembina',
+            'joined_year' => 2025,
         ])->assertSessionHasNoErrors()->assertRedirect('/students');
         $this->assertSame('1003', $user->fresh()->username);
         $this->assertSame('siswa', $user->fresh()->role);

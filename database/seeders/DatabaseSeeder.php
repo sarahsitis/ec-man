@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Student;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -35,8 +36,14 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Panitia Cici',
             'username' => '1002',
-            'role' => 'siswa',
+            'role' => 'panitia',
             'password' => Hash::make('password'),
         ]);
+        foreach (User::whereIn('role', ['siswa', 'panitia'])->get() as $user) {
+            Student::firstOrCreate(['user_id' => $user->id], [
+                'student_number' => $user->username, 'full_name' => $user->name,
+                'joined_year' => date('Y'), 'class_name' => $user->isPanitia() ? 'XI RPL 1' : null,
+            ]);
+        }
     }
 }

@@ -13,12 +13,23 @@ function StudentProfile({ student }: { student?: Member | null }) {
         phone: student?.phone ?? '', class_name: student?.class_name ?? '', email: student?.email ?? '',
         address: student?.address ?? '', profile_photo: null, _method: 'PATCH',
     });
-    const submit: FormEventHandler = e => { e.preventDefault(); form.post(route('profile.update'), { forceFormData: true }); };
+    const submit: FormEventHandler = e => {
+        e.preventDefault();
+        form.transform(data => {
+            if (user.role === 'panitia') {
+                const { class_name, ...permitted } = data;
+                return permitted;
+            }
+            return data;
+        });
+        form.post(route('profile.update'), { forceFormData: true });
+    };
     return <form onSubmit={submit} className="mt-6 space-y-6">
         <div><InputLabel htmlFor="full_name" value="Nama lengkap" /><TextInput id="full_name" value={student?.full_name ?? user.name} readOnly className="mt-1 block w-full bg-gray-100" /></div>
         <div><InputLabel htmlFor="student_number" value="NIS" /><TextInput id="student_number" value={student?.student_number ?? user.username} readOnly className="mt-1 block w-full bg-gray-100" /></div>
         <p className="text-sm text-gray-500">Untuk memperbaiki nama atau NIS, hubungi pembina English Club.</p>
-        <StudentContactFields data={form.data} errors={form.errors} onText={(k,v) => form.setData(k,v)} onPhoto={f => form.setData('profile_photo',f)} photoUrl={student?.profile_photo_url} />
+        {user.role === 'panitia' && <p className="text-sm text-gray-500">Perubahan kelas panitia dilakukan oleh pembina.</p>}
+        <StudentContactFields lockClass={user.role === 'panitia'} data={form.data} errors={form.errors} onText={(k,v) => form.setData(k,v)} onPhoto={f => form.setData('profile_photo',f)} photoUrl={student?.profile_photo_url} />
         <PrimaryButton disabled={form.processing}>Simpan profil</PrimaryButton>
         {form.recentlySuccessful && <p role="status">Profil tersimpan.</p>}
     </form>;

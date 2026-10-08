@@ -3,12 +3,12 @@ import { Head, usePage } from '@inertiajs/react';
 
 export default function Dashboard() {
     const user = usePage().props.auth.user;
-    
+    const roleLabel = user.role === 'pembina' ? 'Pembina' : user.role === 'panitia' ? 'Panitia EC — Asisten Penilai' : 'Siswa';
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Dashboard {user.role === 'pembina' ? 'Pembina' : 'Siswa'}
+                    Dashboard {roleLabel}
                 </h2>
             }
         >
@@ -18,7 +18,7 @@ export default function Dashboard() {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
-                            Selamat datang, {user.name}! Anda masuk sebagai {user.role === 'pembina' ? 'Pembina English Club' : 'Siswa'}.
+                            Selamat datang, {user.name}! Anda masuk sebagai {roleLabel}.
                         </div>
                     </div>
                 </div>

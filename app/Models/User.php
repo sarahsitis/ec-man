@@ -56,4 +56,8 @@ class User extends Authenticatable
     {
         return $this->role === 'pembina';
     }
+    public function isPanitia(): bool
+    {
+        return $this->role === 'panitia';
+    }
 }

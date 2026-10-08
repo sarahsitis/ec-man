@@ -8,10 +8,10 @@ export interface ContactData {
     phone: string; class_name: string; email: string; address: string;
     profile_photo: File | null;
 }
-export default function StudentContactFields({ data, errors, onText, onPhoto, photoUrl }: {
+export default function StudentContactFields({ data, errors, onText, onPhoto, photoUrl, lockClass = false }: {
     data: ContactData; errors: Partial<Record<ContactKey | 'profile_photo', string>>;
     onText: (key: ContactKey, value: string) => void;
-    onPhoto: (file: File | null) => void; photoUrl?: string | null;
+    onPhoto: (file: File | null) => void; photoUrl?: string | null; lockClass?: boolean;
 }) {
     const [preview, setPreview] = useState<string | null>(null);
     useEffect(() => {
@@ -32,7 +32,7 @@ export default function StudentContactFields({ data, errors, onText, onPhoto, ph
             ['phone', 'Nomor HP', 'tel'], ['class_name', 'Kelas saat ini', 'text'], ['email', 'Email', 'email'],
         ] as const).map(([key, label, type]) => <div key={key}>
             <InputLabel htmlFor={key} value={label} />
-            <TextInput id={key} type={type} value={data[key]} maxLength={key === 'phone' ? 30 : key === 'class_name' ? 100 : 255} onChange={e => onText(key, e.target.value)} className="mt-1 block w-full" />
+            <TextInput id={key} readOnly={key === 'class_name' && lockClass} type={type} value={data[key]} maxLength={key === 'phone' ? 30 : key === 'class_name' ? 100 : 255} onChange={e => onText(key, e.target.value)} className="mt-1 block w-full" />
             <InputError message={errors[key]} />
         </div>)}
         <div>

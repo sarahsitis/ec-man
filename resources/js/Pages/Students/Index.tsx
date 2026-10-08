@@ -31,6 +31,7 @@ export default function Index({ students }: { students: any[] }) {
                                         <th className="px-6 py-3">Foto</th>
                                         <th className="px-6 py-3">NIS</th>
                                         <th className="px-6 py-3">Nama Lengkap</th>
+                                        <th className="px-6 py-3">Peran</th>
                                         <th className="px-6 py-3">Kelas</th>
                                         <th className="px-6 py-3">Tahun Gabung</th>
                                         <th className="px-6 py-3 text-right">Aksi</th>
@@ -44,6 +45,7 @@ export default function Index({ students }: { students: any[] }) {
                                                 {student.student_number}
                                             </td>
                                             <td className="px-6 py-4">{student.full_name}</td>
+                                            <td className="px-6 py-4">{student.user?.role === 'panitia' ? 'Panitia EC — Asisten penilai' : 'Siswa'}</td>
                                             <td className="px-6 py-4">{student.class_name || 'Belum diisi'}</td>
                                             <td className="px-6 py-4">{student.joined_year}</td>
                                             <td className="px-6 py-4 text-right">
@@ -53,7 +55,7 @@ export default function Index({ students }: { students: any[] }) {
                                     ))}
                                     {students.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-4 text-center">Belum ada anggota.</td>
+                                            <td colSpan={7} className="px-6 py-4 text-center">Belum ada anggota.</td>
                                         </tr>
                                     )}
                                 </tbody>

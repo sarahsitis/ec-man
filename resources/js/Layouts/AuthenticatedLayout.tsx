@@ -57,7 +57,7 @@ export default function Authenticated({
                                                 type="button"
                                                 className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                             >
-                                                {user.name}
+                                                {user.name}{user.role === 'panitia' && ' · Panitia EC'}
 
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
@@ -154,7 +154,7 @@ export default function Authenticated({
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
                         <div className="px-4">
                             <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}
+                                {user.name}{user.role === 'panitia' && ' · Panitia EC'}
                             </div>
                             <div className="text-sm font-medium text-gray-500">
                                 {user.username}
