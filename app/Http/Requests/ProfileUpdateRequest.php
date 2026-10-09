@@ -10,12 +10,12 @@ class ProfileUpdateRequest extends FormRequest
     public function authorize(): bool { return $this->user() !== null; }
     public function rules(): array {
         if (!$this->user()->isPembina()) {
-            $rules = StudentProfileService::rules();
+            $rules = StudentProfileService::rules($this->user()->student?->class_name);
             if ($this->user()->isPanitia()) { $rules['class_name'] = ['prohibited']; }
             return array_merge($rules, [
                 'name' => ['prohibited'], 'username' => ['prohibited'],
                 'full_name' => ['prohibited'], 'student_number' => ['prohibited'],
-                'role' => ['prohibited'],
+                'role' => ['prohibited'], 'status' => ['prohibited'],
             ]);
         }
         return [

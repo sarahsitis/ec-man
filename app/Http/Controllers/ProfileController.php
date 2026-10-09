@@ -7,6 +7,8 @@ use App\Services\StudentProfileService;
 use App\Models\Student;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentEvent;
+use App\Models\Activity;
+use App\Models\Attendance;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -67,8 +69,11 @@ class ProfileController extends Controller
             ->orWhere('created_by', $user->id)->orWhere('reviewed_by', $user->id)->exists();
         $hasGrades = $user->student && AssessmentAssignment::where('student_id', $user->student->id)->exists();
         $hasEvents = AssessmentEvent::where('actor_id', $user->id)->exists();
-        if ($hasAssignments || $hasGrades || $hasEvents) {
-            throw ValidationException::withMessages(['password' => 'Akun ini terkait riwayat penilaian dan tidak dapat dihapus. Hubungi pembina.']);
+        $hasPreTest = $user->student && $user->student->preTestResult()->exists();
+        $hasMembership = $user->student && ($user->student->memberships()->exists() || $user->student->attendances()->exists());
+        $hasActivity = Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
+        if ($hasAssignments || $hasGrades || $hasEvents || $hasPreTest || $hasMembership || $hasActivity) {
+            throw ValidationException::withMessages(['password' => 'Akun ini terkait riwayat keanggotaan, kegiatan, atau penilaian dan tidak dapat dihapus. Hubungi pembina.']);
         }
 
         Auth::logout();

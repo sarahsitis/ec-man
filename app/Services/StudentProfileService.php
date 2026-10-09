@@ -11,11 +11,11 @@ use Throwable;
 
 class StudentProfileService
 {
-    public static function rules(): array
+    public static function rules(?string $currentClass = null): array
     {
         return [
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+() .-]+$/'],
-            'class_name' => ['nullable', 'string', 'max:100'],
+            'class_name' => ClassCatalog::rules($currentClass),
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:2000'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

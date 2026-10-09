@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'X PPLG' => 3,
+    'XI PPLG - RPL' => 3,
+    'XII PPLG - RPL' => 2,
+    'X MPLB' => 5,
+    'XI MPLB - MP' => 3,
+    'XI MPLB - ML' => 2,
+    'XII MPLB - MP' => 3,
+    'XII MPLB - ML' => 2,
+    'X AKKUL' => 4,
+    'XI AKKUL - AK' => 3,
+    'XI AKKUL - PB' => 1,
+    'XII AKKUL - AK' => 3,
+    'XII AKKUL - PB' => 1,
+    'X PS' => 4,
+    'XI PS - BR' => 2,
+    'XI PS - BD' => 1,
+    'XII PS - BR' => 2,
+    'XII PS - BD' => 1,
+    'XI TJKT - TK' => 2,
+    'XI TJKT - TR' => 1,
+    'XII TJKT - TK' => 2,
+    'XII TJKT - TR' => 1,
+];

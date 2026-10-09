@@ -18,12 +18,12 @@ class StudentProfileFieldsTest extends TestCase
     public function test_student_updates_contact_fields_without_modifying_identity(): void {
         $student = $this->member('1001');
         $this->actingAs($student->user)->patch('/profile', [
-            'phone' => '081234567890', 'class_name' => 'XI RPL 1',
+            'phone' => '081234567890', 'class_name' => 'XI PPLG - RPL 1',
             'email' => 'siswa@example.com', 'address' => 'Cianjur',
         ])->assertSessionHasNoErrors()->assertRedirect('/profile');
         $student->refresh();
         $this->assertSame('081234567890', $student->phone);
-        $this->assertSame('XI RPL 1', $student->class_name);
+        $this->assertSame('XI PPLG - RPL 1', $student->class_name);
         $this->assertSame('siswa@example.com', $student->email);
         $this->assertSame('Cianjur', $student->address);
         $this->assertSame('1001', $student->student_number);
@@ -72,12 +72,12 @@ class StudentProfileFieldsTest extends TestCase
         $admin = User::create(['name' => 'Pembina', 'username' => 'admin', 'role' => 'pembina', 'password' => 'test-password']);
         $this->actingAs($admin)->put('/students/'.$student->id, [
             'student_number' => '1003', 'full_name' => 'Nama Koreksi', 'joined_year' => 2026,
-            'class_name' => 'XII RPL 1', 'phone' => '+6281234', 'email' => 'koreksi@example.com', 'address' => 'Alamat Baru',
+            'class_name' => 'XII PPLG - RPL 1', 'phone' => '+6281234', 'email' => 'koreksi@example.com', 'address' => 'Alamat Baru',
         ])->assertSessionHasNoErrors()->assertRedirect('/students');
         $student->refresh();
         $this->assertSame('1003', $student->user->username);
         $this->assertSame('Nama Koreksi', $student->full_name);
-        $this->assertSame('XII RPL 1', $student->class_name);
+        $this->assertSame('XII PPLG - RPL 1', $student->class_name);
         $this->assertSame($hash, $student->user->password);
     }
     public function test_existing_accounts_without_member_profile_can_save_contacts(): void {

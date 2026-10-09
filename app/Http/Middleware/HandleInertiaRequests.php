@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use App\Services\ClassCatalog;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -32,6 +33,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'flash' => ['success' => fn () => $request->session()->get('success')],
+            'classGroups' => fn () => ClassCatalog::groups(),
             'auth' => [
                 'user' => $request->user(),
             ],

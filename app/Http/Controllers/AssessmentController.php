@@ -38,25 +38,45 @@ class AssessmentController extends Controller {
     public function store(Request $request, AssessmentService $service) {
         abort_unless($request->user()->isPembina(), 403);
         $data = $request->validate([
-            'student_id' => ['required', 'integer', 'exists:students,id'],
+            'student_id' => ['required_without:student_ids', Rule::prohibitedIf($request->has('student_ids')), 'integer', 'exists:students,id'],
+            'student_ids' => ['required_without:student_id', Rule::prohibitedIf($request->has('student_id')), 'array', 'min:1'],
+            'student_ids.*' => ['required', 'integer', 'distinct', 'exists:students,id'],
             'assessor_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'panitia')],
             'aspect' => ['required', Rule::in(AssessmentService::ASPECTS)],
-            'title' => ['required', 'string', 'max:150', Rule::unique('assessment_assignments', 'title')->where(fn ($q) => $q->where('student_id', $request->input('student_id'))->where('aspect', $request->input('aspect')))],
+            'title' => ['required', 'string', 'max:150'],
             'due_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d')],
         ]);
-        $student = Student::findOrFail($data['student_id']);
+        $studentIds = $data['student_ids'] ?? [$data['student_id']];
+        $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
         $assessor = User::findOrFail($data['assessor_id']);
-        if ($student->user_id === $assessor->id) { throw ValidationException::withMessages(['student_id' => 'Panitia tidak boleh menilai dirinya sendiri.']); }
+        foreach ($studentIds as $index => $studentId) {
+            if ($students[$studentId]->user_id === $assessor->id) {
+                throw ValidationException::withMessages([isset($data['student_ids']) ? 'student_ids.'.$index : 'student_id' => 'Panitia tidak boleh menilai dirinya sendiri.']);
+            }
+        }
         if (!$assessor->student || !preg_match('/^(XI|XII)(?:\s|$)/i', trim($assessor->student->class_name ?? ''))) {
             throw ValidationException::withMessages(['assessor_id' => 'Lengkapi kelas XI/XII panitia melalui Edit Anggota.']);
         }
-        DB::transaction(function () use ($request, $data, $service) {
-            $assignment = AssessmentAssignment::create(array_merge($data, [
-                'created_by' => $request->user()->id, 'status' => 'assigned', 'rubric' => AssessmentService::rubric($data['aspect']),
-            ]));
-            $service->event($assignment, $request->user(), 'assigned', ['assessor_id' => $assignment->assessor_id, 'student_id' => $assignment->student_id]);
+        DB::transaction(function () use ($request, $data, $studentIds, $students, $service) {
+            $duplicates = AssessmentAssignment::whereIn('student_id', $studentIds)
+                ->where('title', $data['title'])->where('aspect', $data['aspect'])->pluck('student_id')->all();
+            $errors = [];
+            foreach ($studentIds as $index => $studentId) {
+                if (in_array((int) $studentId, $duplicates)) {
+                    $errors[isset($data['student_ids']) ? 'student_ids.'.$index : 'title'] = 'Penugasan dengan judul dan aspek ini sudah ada untuk '.$students[$studentId]->full_name.'.';
+                }
+            }
+            if ($errors) { throw ValidationException::withMessages($errors); }
+            foreach ($studentIds as $studentId) {
+                $assignment = AssessmentAssignment::create([
+                    'student_id' => $studentId, 'assessor_id' => $data['assessor_id'],
+                    'title' => $data['title'], 'aspect' => $data['aspect'], 'due_date' => $data['due_date'] ?? null,
+                    'created_by' => $request->user()->id, 'status' => 'assigned', 'rubric' => AssessmentService::rubric($data['aspect']),
+                ]);
+                $service->event($assignment, $request->user(), 'assigned', ['assessor_id' => $assignment->assessor_id, 'student_id' => $assignment->student_id]);
+            }
         });
-        return back()->with('success', 'Penugasan dibuat.');
+        return back()->with('success', 'Penugasan untuk '.count($studentIds).' siswa dibuat.');
     }
     public function committeeDashboard(Request $request) {
         $user = $this->panitia($request);

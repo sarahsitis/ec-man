@@ -18,13 +18,20 @@ export default function Authenticated({
         { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
         { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
         { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.index') || route().current('pretests.show') },
+        { label: 'Kegiatan & Presensi', href: route('activities.index'), active: route().current('activities.*') },
     ] : user.role === 'pembina' ? [
         { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Anggota', href: route('students.index'), active: route().current('students.*') },
+        { label: 'Keanggotaan', href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
+        { label: 'Kegiatan', href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
         { label: 'Penugasan & Penilaian', href: route('assessments.index'), active: route().current('assessments.*') },
+        { label: 'Hasil Pre-test', href: route('pretests.reports'), active: route().current('pretests.*') },
     ] : [
         { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.*') },
+        { label: 'Kegiatan Saya', href: route('activities.index'), active: route().current('activities.*') },
     ];
     const flash = usePage().props.flash as {success?: string} | undefined;
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
@@ -42,12 +49,12 @@ export default function Authenticated({
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <div className="hidden space-x-4 xl:-my-px xl:ms-6 xl:flex">
                                 {menus.map(menu => <NavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</NavLink>)}
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden xl:ms-6 xl:flex xl:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -92,7 +99,7 @@ export default function Authenticated({
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="-me-2 flex items-center xl:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -138,7 +145,7 @@ export default function Authenticated({
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
+                        ' xl:hidden'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">

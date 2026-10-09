@@ -45,6 +45,101 @@ class AssessmentWorkflowTest extends TestCase
         $this->post('/penilaian',$data)->assertSessionHasErrors('student_id');
         $this->assertDatabaseCount('assessment_assignments',1);
     }
+    public function test_one_panitia_can_assess_multiple_students_with_independent_results(): void {
+        $second = $this->member($this->account('2002', 'siswa'), 'X RPL 2');
+        $dueDate = now('Asia/Jakarta')->addDays(7)->toDateString();
+        $this->actingAs($this->pembina)->post('/penilaian', [
+            'student_ids' => [$this->student->id, $second->id], 'assessor_id' => $this->panitia->id,
+            'title' => 'Storytelling 1', 'aspect' => 'speaking', 'due_date' => $dueDate,
+        ])->assertSessionHasNoErrors()->assertSessionHas('success', 'Penugasan untuk 2 siswa dibuat.');
+        $this->assertDatabaseCount('assessment_assignments', 2);
+        $this->assertDatabaseCount('assessment_events', 2);
+        foreach ([$this->student, $second] as $student) {
+            $this->assertDatabaseHas('assessment_assignments', [
+                'student_id' => $student->id, 'assessor_id' => $this->panitia->id,
+                'title' => 'Storytelling 1', 'aspect' => 'speaking', 'due_date' => $dueDate,
+                'created_by' => $this->pembina->id, 'status' => 'assigned',
+            ]);
+        }
+        $firstItem = AssessmentAssignment::where('student_id', $this->student->id)->firstOrFail();
+        $secondItem = AssessmentAssignment::where('student_id', $second->id)->firstOrFail();
+        $this->assertSame(AssessmentService::rubric('speaking'), $secondItem->rubric);
+        $this->assertDatabaseHas('assessment_events', [
+            'assessment_assignment_id' => $secondItem->id, 'actor_id' => $this->pembina->id, 'action' => 'assigned',
+        ]);
+        $this->actingAs($this->panitia)->get('/panitia/dashboard')->assertInertia(fn ($page) =>
+            $page->where('counts.assigned', 2)->has('recent', 2));
+        $this->get('/panitia/penugasan')->assertInertia(fn ($page) => $page->has('assignments.data', 2));
+        $this->get('/penilaian/'.$firstItem->id)->assertOk();
+        $this->get('/penilaian/'.$secondItem->id)->assertOk();
+        $this->post('/penilaian/'.$firstItem->id.'/rekomendasi', $this->recommendation())->assertSessionHasNoErrors();
+        $this->assertSame('assigned', $secondItem->fresh()->status);
+        $secondRecommendation = array_merge($this->recommendation(), [
+            'proposed_score' => 2, 'observations' => 'Perlu bantuan untuk menyusun cerita.', 'feedback' => 'Latih urutan cerita sebelum berbicara.',
+        ]);
+        $this->post('/penilaian/'.$secondItem->id.'/rekomendasi', $secondRecommendation)->assertSessionHasNoErrors();
+        $this->assertSame(3, $firstItem->fresh()->proposed_score);
+        $this->assertSame(2, $secondItem->fresh()->proposed_score);
+        $this->assertSame($secondRecommendation['feedback'], $secondItem->fresh()->feedback);
+        $this->actingAs($this->pembina)->post('/penilaian/'.$firstItem->id.'/keputusan', [
+            'decision' => 'approve', 'final_score' => 3,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('submitted', $secondItem->fresh()->status);
+        $this->assertNull($secondItem->fresh()->final_score);
+        $this->actingAs($this->student->user)->get('/perkembangan-saya')->assertInertia(fn ($page) =>
+            $page->has('grades.data', 1)->where('grades.data.0.final_score', 3));
+        $this->actingAs($second->user)->get('/perkembangan-saya')->assertInertia(fn ($page) => $page->has('grades.data', 0));
+    }
+
+    public function test_bulk_assignment_rejects_self_assessment_without_creating_any_assignments(): void {
+        $this->actingAs($this->pembina)->post('/penilaian', [
+            'student_ids' => [$this->student->id, $this->panitia->student->id],
+            'assessor_id' => $this->panitia->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking',
+        ])->assertSessionHasErrors('student_ids.1');
+        $this->assertDatabaseCount('assessment_assignments', 0);
+        $this->assertDatabaseCount('assessment_events', 0);
+    }
+
+    public function test_bulk_assignment_rejects_duplicate_task_without_partial_creation(): void {
+        $this->assignment();
+        $second = $this->member($this->account('2002', 'siswa'), 'X RPL 2');
+        $this->actingAs($this->pembina)->post('/penilaian', [
+            'student_ids' => [$second->id, $this->student->id],
+            'assessor_id' => $this->panitia->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking',
+        ])->assertSessionHasErrors('student_ids.1');
+        $this->assertDatabaseCount('assessment_assignments', 1);
+        $this->assertDatabaseCount('assessment_events', 0);
+        $this->assertDatabaseMissing('assessment_assignments', ['student_id' => $second->id]);
+    }
+
+    public function test_bulk_assignment_requires_distinct_existing_students(): void {
+        $base = ['assessor_id' => $this->panitia->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking'];
+        $this->actingAs($this->pembina)->post('/penilaian', array_merge($base, [
+            'student_ids' => [],
+        ]))->assertSessionHasErrors('student_ids');
+        $this->post('/penilaian', array_merge($base, [
+            'student_ids' => [$this->student->id, $this->student->id],
+        ]))->assertSessionHasErrors('student_ids.1');
+        $this->post('/penilaian', array_merge($base, [
+            'student_ids' => [$this->student->id, 99999],
+        ]))->assertSessionHasErrors('student_ids.1');
+        $this->post('/penilaian', array_merge($base, [
+            'student_ids' => [$this->student->id], 'student_id' => $this->student->id,
+        ]))->assertSessionHasErrors(['student_ids', 'student_id']);
+        $this->assertDatabaseCount('assessment_assignments', 0);
+        $this->assertDatabaseCount('assessment_events', 0);
+    }
+
+    public function test_bulk_assignment_requires_pembina_and_eligible_panitia(): void {
+        $data = ['student_ids' => [$this->student->id], 'assessor_id' => $this->panitia->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking'];
+        $this->actingAs($this->panitia)->post('/penilaian', $data)->assertForbidden();
+        $this->actingAs($this->student->user)->post('/penilaian', $data)->assertForbidden();
+        $this->panitia->student->update(['class_name' => 'X RPL 1']);
+        $this->actingAs($this->pembina)->post('/penilaian', $data)->assertSessionHasErrors('assessor_id');
+        $this->panitia->update(['role' => 'siswa']);
+        $this->post('/penilaian', $data)->assertSessionHasErrors('assessor_id');
+        $this->assertDatabaseCount('assessment_assignments', 0);
+    }
     public function test_recommendation_is_not_published_until_pembina_approval(): void {
         $item=$this->assignment();
         $this->actingAs($this->panitia)->post('/penilaian/'.$item->id.'/rekomendasi',$this->recommendation())->assertSessionHasNoErrors();

@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
+import ClassSelect from '@/Components/ClassSelect';
 import { useEffect, useState } from 'react';
 
 export type ContactKey = 'phone' | 'class_name' | 'email' | 'address';
@@ -32,7 +33,9 @@ export default function StudentContactFields({ data, errors, onText, onPhoto, ph
             ['phone', 'Nomor HP', 'tel'], ['class_name', 'Kelas saat ini', 'text'], ['email', 'Email', 'email'],
         ] as const).map(([key, label, type]) => <div key={key}>
             <InputLabel htmlFor={key} value={label} />
-            <TextInput id={key} readOnly={key === 'class_name' && lockClass} type={type} value={data[key]} maxLength={key === 'phone' ? 30 : key === 'class_name' ? 100 : 255} onChange={e => onText(key, e.target.value)} className="mt-1 block w-full" />
+            {key === 'class_name'
+                ? <ClassSelect id={key} disabled={lockClass} value={data.class_name} onChange={e => onText('class_name', e.target.value)} />
+                : <TextInput id={key} type={type} value={data[key]} maxLength={key === 'phone' ? 30 : 255} onChange={e => onText(key, e.target.value)} className="mt-1 block w-full" />}
             <InputError message={errors[key]} />
         </div>)}
         <div>

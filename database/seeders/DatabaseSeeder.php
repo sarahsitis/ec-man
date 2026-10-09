@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
         foreach (User::whereIn('role', ['siswa', 'panitia'])->get() as $user) {
             Student::firstOrCreate(['user_id' => $user->id], [
                 'student_number' => $user->username, 'full_name' => $user->name,
-                'joined_year' => date('Y'), 'class_name' => $user->isPanitia() ? 'XI RPL 1' : null,
+                'joined_year' => date('Y'), 'class_name' => $user->isPanitia() ? 'XI PPLG - RPL 1' : null,
             ]);
         }
     }

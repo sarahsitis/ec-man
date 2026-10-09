@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Activity extends Model
 {
+    public const STATUSES = ['scheduled' => 'Terjadwal', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan'];
     protected $fillable = [
         'academic_year_id',
         'title',
@@ -21,12 +22,13 @@ class Activity extends Model
         'target_audience',
         'status',
         'created_by',
+        'activity_scheme_id', 'objectives', 'agenda',
     ];
 
     protected function casts(): array
     {
         return [
-            'activity_date' => 'date',
+            'activity_date' => 'date:Y-m-d',
         ];
     }
 
@@ -43,5 +45,10 @@ class Activity extends Model
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function scheme(): BelongsTo
+    {
+        return $this->belongsTo(ActivityScheme::class, 'activity_scheme_id');
     }
 }
