@@ -40,7 +40,7 @@ class ActivityController extends Controller {
         if ($status !== 'all') { $query->where('status', $status); }
         if ($search !== '') { $query->where(fn ($q) => $q->where('title', 'like', '%'.$search.'%')->orWhere('category', 'like', '%'.$search.'%')); }
         return Inertia::render('Activities/Index', [
-            'activities' => $query->withCount(['attendances as present_count' => fn ($q) => $q->where('status', 'hadir')])->orderByDesc('activity_date')->orderBy('start_time')->paginate(20)->withQueryString(),
+            'activities' => $query->withCount(['attendances as present_count' => fn ($q) => $q->where('status', 'hadir')])->orderByDesc('activity_date')->orderBy('start_time')->orderBy('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString(),
             'years' => AcademicYear::orderByDesc('name')->get(), 'statuses' => Activity::STATUSES,
             'filters' => ['academic_year_id' => $yearId, 'status' => $status, 'search' => $search],
         ]);

@@ -1,12 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { AcademicYear, ManagementNav, yearLabel } from '@/Components/ManagementUi';
-import { panel, field } from '@/Components/AssessmentUi';
+import { panel, field, Paging, Paginator } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Head, router, useForm } from '@inertiajs/react';
 
-export default function Index({ years, defaults }: { years: AcademicYear[]; defaults: { name: string; semester: string } }) {
+export default function Index({ years, defaults }: { years: Paginator<AcademicYear>; defaults: { name: string; semester: string } }) {
     const form = useForm({ ...defaults, is_active: true });
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Tahun Ajaran</h2>}>
         <Head title="Tahun Ajaran" /><div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
@@ -18,7 +18,7 @@ export default function Index({ years, defaults }: { years: AcademicYear[]; defa
                     <PrimaryButton disabled={form.processing}>Tambah semester</PrimaryButton>
                 </form>
             </div>
-            <div className={panel}><h3 className="mb-4 text-lg font-semibold">Daftar semester</h3><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b">{['Semester', 'Anggota', 'Kegiatan', 'Aksi'].map(label=><th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{years.map(year=><tr key={year.id} className="border-b"><td className="p-3">{yearLabel(year)}</td><td className="p-3">{year.memberships_count}</td><td className="p-3">{year.activities_count}</td><td className="p-3">{year.is_active ? 'Aktif' : <button className="text-indigo-600" onClick={()=>router.post(route('academic-years.activate', year.id))}>Aktifkan</button>}</td></tr>)}{years.length===0 && <tr><td colSpan={4} className="p-4 text-center text-gray-500">Belum ada tahun ajaran.</td></tr>}</tbody></table></div></div>
+            <div className={panel}><h3 className="mb-4 text-lg font-semibold">Daftar semester</h3><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b">{['Semester', 'Anggota', 'Kegiatan', 'Aksi'].map(label=><th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{years.data.map(year=><tr key={year.id} className="border-b"><td className="p-3">{yearLabel(year)}</td><td className="p-3">{year.memberships_count}</td><td className="p-3">{year.activities_count}</td><td className="p-3">{year.is_active ? 'Aktif' : <button className="text-indigo-600" onClick={()=>router.post(route('academic-years.activate', year.id))}>Aktifkan</button>}</td></tr>)}{years.data.length===0 && <tr><td colSpan={4} className="p-4 text-center text-gray-500">Belum ada tahun ajaran.</td></tr>}</tbody></table></div><Paging page={years} /></div>
         </div>
     </AuthenticatedLayout>;
 }

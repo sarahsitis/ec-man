@@ -19,8 +19,8 @@ class AssessmentController extends Controller {
         $user = $this->panitia($request);
         abort_unless($assignment->assessor_id === $user->id && $assignment->student->user_id !== $user->id, 403);
     }
-    private function entries($query) {
-        return $query->with(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'officialScore:id,assessment_assignment_id,value'])->latest()->paginate(20)->withQueryString();
+    private function entries($query, Request $request) {
+        return $query->with(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'officialScore:id,assessment_assignment_id,value'])->latest()->orderByDesc('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString();
     }
     public function index(Request $request) {
         abort_unless($request->user()->isPembina(), 403);
@@ -29,7 +29,7 @@ class AssessmentController extends Controller {
         if ($status !== 'all') { $query->where('status', $status); }
         return Inertia::render('Assessments/Index', [
             'status' => $status, 'pendingCount' => AssessmentAssignment::where('status', 'submitted')->count(),
-            'assignments' => $this->entries($query),
+            'assignments' => $this->entries($query, $request),
             'students' => Student::where('status', 'active')->select('id', 'user_id', 'full_name', 'student_number', 'class_name')->orderBy('full_name')->get(),
             'assessors' => User::activeCommittee()->select('id', 'name')->orderBy('name')->get(),
             'aspects' => AssessmentService::ASPECTS,
@@ -69,7 +69,7 @@ class AssessmentController extends Controller {
         }
         $status === 'submitted' ? $query->orderBy('submitted_at')->orderBy('id') : $query->orderByDesc('reviewed_at')->orderByDesc('id');
         return Inertia::render('Assessments/Queue', [
-            'assignments' => $query->paginate(20)->withQueryString(),
+            'assignments' => $query->paginate(\App\Support\TablePagination::perPage($request))->withQueryString(),
             'filters' => ['status' => $status, 'search' => $search],
             'counts' => AssessmentAssignment::select('status')->selectRaw('count(*) as total')->groupBy('status')->pluck('total', 'status'),
         ]);
@@ -89,7 +89,7 @@ class AssessmentController extends Controller {
         $status = $request->validate(['status' => ['nullable', Rule::in(['active', 'history'])]])['status'] ?? 'active';
         $query = AssessmentAssignment::where('assessor_id', $user->id)->whereHas('student', fn ($q) => $q->where('user_id', '!=', $user->id));
         $status === 'history' ? $query->whereIn('status', ['submitted', 'approved', 'rejected']) : $query->whereIn('status', ['assigned', 'draft', 'revision']);
-        return Inertia::render('Panitia/Assignments', ['assignments' => $this->entries($query), 'status' => $status]);
+        return Inertia::render('Panitia/Assignments', ['assignments' => $this->entries($query, $request), 'status' => $status]);
     }
     public function show(Request $request, AssessmentAssignment $assignment) {
         if (!$request->user()->isPembina()) { $this->scoped($request, $assignment); }
@@ -138,7 +138,7 @@ class AssessmentController extends Controller {
         $student = $request->user()->student;
         $filters = ReportController::dates($request);
         return Inertia::render('Progress/Index', [
-            'grades' => $reports->grades($student, $filters), 'report' => $reports->summary($student, $filters),
+            'grades' => $reports->grades($student, $filters, \App\Support\TablePagination::perPage($request)), 'report' => $reports->summary($student, $filters),
             'student' => $student?->only(['id', 'full_name', 'student_number', 'class_name']), 'filters' => $filters,
         ]);
     }

@@ -105,7 +105,7 @@ class ClassAndStudentStatusTest extends TestCase {
         $this->assertSame('hadir', $attendance->fresh()->status);
         $nextActivity = $activity->replicate(); $nextActivity->title = 'Latihan berikutnya'; $nextActivity->save();
         $this->get('/kegiatan/'.$nextActivity->id)->assertInertia(fn ($page) => $page->has('students', 0));
-        $this->get('/students?status=alumni')->assertInertia(fn ($page) => $page->has('students', 1)->where('students.0.status', 'alumni'));
+        $this->get('/students?status=alumni')->assertInertia(fn ($page) => $page->has('students.data', 1)->where('students.data.0.status', 'alumni'));
     }
 
     public function test_status_endpoint_requires_pembina_and_rejects_invalid_status(): void {

@@ -1,3 +1,5 @@
+import ClientTablePaging from '@/Components/ClientTablePaging';
+import useTablePagination from '@/hooks/useTablePagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { field, panel } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
@@ -13,6 +15,7 @@ export default function Interests({ distribution, counts, filters, classes, stat
     const [mode, setMode] = useState<'all' | 'primary'>('all');
     const errors = usePage().props.errors;
     const sorted = [...distribution].sort((a, b) => (mode === 'all' ? b.selections_count - a.selections_count : b.primary_count - a.primary_count) || a.name.localeCompare(b.name, 'id-ID'));
+    const pagination = useTablePagination(sorted, JSON.stringify({ ...filters, mode }));
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Distribusi Minat Siswa</h2>}>
         <Head title="Distribusi Minat Siswa" /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
             <div className={panel}><div className="flex flex-wrap justify-between gap-3"><h3 className="text-lg font-semibold">Pemetaan minat EC</h3><Link href={route('pretests.reports')} className="text-indigo-600">Lihat hasil pre-test</Link></div>
@@ -33,7 +36,7 @@ export default function Interests({ distribution, counts, filters, classes, stat
                         <div className="h-5 overflow-hidden rounded bg-gray-100 dark:bg-gray-700"><div className={`h-full rounded ${mode === 'all' ? 'bg-indigo-600' : 'bg-teal-600'}`} style={{ width: `${percentage}%` }} /></div>
                     </div>; })}
                 </div>
-                <div className="overflow-x-auto"><table className="w-full text-left text-sm"><caption className="sr-only">Rincian distribusi minat untuk seluruh kelompok yang dipilih</caption><thead><tr className="border-b">{['Minat', 'Jumlah peminat', '% peminat', 'Minat utama', '% utama'].map(label => <th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{sorted.map(interest => <tr key={interest.id} className="border-b"><th scope="row" className="p-3 font-medium">{interest.name}</th><td className="p-3">{interest.selections_count}</td><td className="p-3">{interest.percentage.toLocaleString('id-ID')}%</td><td className="p-3">{interest.primary_count}</td><td className="p-3">{interest.primary_percentage.toLocaleString('id-ID')}%</td></tr>)}{!sorted.length && <tr><td colSpan={5} className="p-6 text-center text-gray-500">Kategori minat belum tersedia.</td></tr>}</tbody></table></div>
+                <div className="overflow-x-auto"><table className="w-full text-left text-sm"><caption className="sr-only">Rincian distribusi minat untuk seluruh kelompok yang dipilih</caption><thead><tr className="border-b">{['Minat', 'Jumlah peminat', '% peminat', 'Minat utama', '% utama'].map(label => <th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>{pagination.items.map(interest => <tr key={interest.id} className="border-b"><th scope="row" className="p-3 font-medium">{interest.name}</th><td className="p-3">{interest.selections_count}</td><td className="p-3">{interest.percentage.toLocaleString('id-ID')}%</td><td className="p-3">{interest.primary_count}</td><td className="p-3">{interest.primary_percentage.toLocaleString('id-ID')}%</td></tr>)}{!sorted.length && <tr><td colSpan={5} className="p-6 text-center text-gray-500">Kategori minat belum tersedia.</td></tr>}</tbody></table></div><ClientTablePaging pagination={pagination} />
             </div>
         </div>
     </AuthenticatedLayout>;

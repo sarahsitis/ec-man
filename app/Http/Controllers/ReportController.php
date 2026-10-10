@@ -31,7 +31,7 @@ class ReportController extends Controller
         return Inertia::render('Reports/Student', [
             'student' => [...$student->only(['id', 'full_name', 'student_number', 'class_name', 'status', 'joined_year']),
                 'profile_photo_url' => $owner || $user->isPembina() ? $student->profile_photo_url : null],
-            'report' => $reports->summary($student, $filters), 'grades' => $reports->grades($student, $filters), 'filters' => $filters,
+            'report' => $reports->summary($student, $filters), 'grades' => $reports->grades($student, $filters, \App\Support\TablePagination::perPage($request)), 'filters' => $filters,
         ]);
     }
 

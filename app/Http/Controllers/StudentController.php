@@ -29,9 +29,10 @@ class StudentController extends Controller
         if ($status !== 'all') { $query->where('status', $status); }
         if ($search !== '') { $query->where(fn ($q) => $q->where('full_name', 'like', '%'.$search.'%')->orWhere('student_number', 'like', '%'.$search.'%')->orWhere('class_name', 'like', '%'.$search.'%')); }
         return Inertia::render('Students/Index', [
-            'students' => $query->latest()->get()->each(function ($student) {
+            'students' => $query->orderByDesc('created_at')->orderByDesc('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString()->through(function ($student) {
                 $student->user->setAttribute('is_panitia', $student->user->role === 'panitia' && $student->user->has_active_committee_term
                     && $student->status === 'active' && (bool) preg_match('/^(XI|XII)(?:\s|$)/i', trim($student->class_name ?? '')));
+                return $student;
             }), 'statuses' => Student::STATUSES,
             'filters' => ['status' => $status, 'search' => $search],
         ]);

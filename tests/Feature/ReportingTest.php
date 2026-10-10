@@ -163,8 +163,9 @@ class ReportingTest extends TestCase
     {
         for ($index = 0; $index < 21; $index++) { $this->score($this->student, 'reading', $index === 20 ? 4 : 2); }
         $this->actingAs($this->student->user)->get('/perkembangan-saya')->assertInertia(fn ($page) => $page
-            ->has('grades.data', 20)->where('report.total_scores', 21)->where('report.skills.2.count', 21)->where('report.skills.2.average', 2.1));
-        $this->get('/perkembangan-saya?page=2')->assertInertia(fn ($page) => $page->has('grades.data', 1)->where('report.total_scores', 21));
+            ->has('grades.data', 10)->where('report.total_scores', 21)->where('report.skills.2.count', 21)->where('report.skills.2.average', 2.1));
+        $this->get('/perkembangan-saya?page=3')->assertInertia(fn ($page) => $page->has('grades.data', 1)->where('report.total_scores', 21));
+        $this->get('/perkembangan-saya?per_page=25')->assertInertia(fn ($page) => $page->has('grades.data', 21)->where('report.total_scores', 21)->where('report.skills.2.average', 2.1));
     }
 
     public function test_date_filters_follow_inclusive_jakarta_days_for_summary_and_history(): void

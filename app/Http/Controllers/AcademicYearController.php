@@ -9,11 +9,11 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class AcademicYearController extends Controller {
-    public function index() {
+    public function index(Request $request) {
         $now = now('Asia/Jakarta');
         $startYear = $now->month >= 7 ? $now->year : $now->year - 1;
         return Inertia::render('AcademicYears/Index', [
-            'years' => AcademicYear::withCount(['memberships', 'activities'])->orderByDesc('name')->orderBy('semester')->get(),
+            'years' => AcademicYear::withCount(['memberships', 'activities'])->orderByDesc('name')->orderBy('semester')->orderBy('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString(),
             'defaults' => ['name' => $startYear.'/'.($startYear + 1), 'semester' => $now->month >= 7 ? 'ganjil' : 'genap'],
         ]);
     }

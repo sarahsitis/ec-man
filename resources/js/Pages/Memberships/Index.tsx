@@ -20,7 +20,7 @@ export default function Index({ memberships, years, students, statuses, filters 
     const [search, setSearch] = useState(filters.search);
     const [status, setStatus] = useState(filters.status);
     const errors: Record<string, string | undefined> = form.errors;
-    const filter = (year = filters.academic_year_id) => router.get(route('memberships.index'), { academic_year_id: year, search, status });
+    const filter = (year = filters.academic_year_id) => router.get(route('memberships.index'), { academic_year_id: year, search, status, per_page: memberships.per_page });
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Keanggotaan Siswa</h2>}>
         <Head title="Keanggotaan Siswa" /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
             {years.length===0 ? <div className={panel}>Tambahkan tahun ajaran dan semester sebelum mendaftarkan anggota. <Link className="text-indigo-600" href={route('academic-years.index')}>Kelola tahun ajaran</Link></div> : <>

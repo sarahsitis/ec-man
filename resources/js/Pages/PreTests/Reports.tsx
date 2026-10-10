@@ -21,7 +21,7 @@ export default function Reports({ students, filters, counts }: {
             <div className={panel}>
                 <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-lg font-semibold">Pemetaan kemampuan dan minat siswa</h3><Link href={route('reports.interests')} className="text-sm font-medium text-indigo-600">Grafik distribusi minat</Link></div>
                 <p className="mt-2 text-sm text-gray-500">Gunakan hasil awal untuk merencanakan latihan dan penugasan. Skor pilihan ganda mengukur bacaan dan penggunaan bahasa. Listening, speaking, reading, dan writing juga dicatat melalui penilaian diri siswa.</p>
-                <form className="my-5 flex flex-wrap items-end gap-3" onSubmit={e=>{e.preventDefault(); router.get(route('pretests.reports'), { search, status }, { preserveState: true });}}>
+                <form className="my-5 flex flex-wrap items-end gap-3" onSubmit={e=>{e.preventDefault(); router.get(route('pretests.reports'), { search, status, per_page: students.per_page }, { preserveState: true });}}>
                     <div className="min-w-48 flex-1"><InputLabel htmlFor="report_search" value="Cari nama, nomor induk, atau kelas" /><input id="report_search" className={field} type="search" maxLength={100} value={search} onChange={e=>setSearch(e.target.value)} /></div>
                     <div><InputLabel htmlFor="report_status" value="Status pre-test" /><select id="report_status" className={field} value={status} onChange={e=>setStatus(e.target.value)}><option value="all">Semua siswa</option><option value="completed">Sudah mengisi</option><option value="pending">Belum mengisi</option></select></div>
                     <PrimaryButton>Terapkan</PrimaryButton>

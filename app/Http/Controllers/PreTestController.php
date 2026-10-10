@@ -88,7 +88,7 @@ class PreTestController extends Controller {
                 ->orWhere('student_number', 'like', '%'.$search.'%')->orWhere('class_name', 'like', '%'.$search.'%'));
         }
         return Inertia::render('PreTests/Reports', [
-            'students' => $query->with('preTestResult')->orderBy('full_name')->paginate(20)->withQueryString(),
+            'students' => $query->with('preTestResult')->orderBy('full_name')->orderBy('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString(),
             'filters' => ['status' => $status, 'search' => $search],
             'counts' => ['total' => $total, 'completed' => $completed, 'pending' => $total - $completed],
         ]);

@@ -124,7 +124,7 @@ class MembershipManagementTest extends TestCase {
         $this->post('/students/status-massal', ['student_ids' => [$this->student->id, 99999], 'status' => 'left'])->assertSessionHasErrors('student_ids.1');
         $this->assertSame('active', $this->student->fresh()->status);
         $this->post('/students/status-massal', ['student_ids' => [$this->student->id], 'status' => 'invalid'])->assertSessionHasErrors('status');
-        $this->get('/students?status=alumni&search=Alumni')->assertInertia(fn ($page) => $page->has('students', 1)->where('students.0.student_number', '2003'));
+        $this->get('/students?status=alumni&search=Alumni')->assertInertia(fn ($page) => $page->has('students.data', 1)->where('students.data.0.student_number', '2003'));
         $this->actingAs($this->student->user)->patch('/profile', ['status' => 'active'])->assertSessionHasErrors('status');
     }
 

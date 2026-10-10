@@ -56,10 +56,10 @@ class StudentReportService
         ];
     }
 
-    public function grades(?Student $student, array $filters = [])
+    public function grades(?Student $student, array $filters = [], int $perPage = 10)
     {
         return $this->scores($student, $filters)->with(['assessment:id,title,aspect', 'approver:id,name'])
-            ->orderByDesc('approved_at')->orderByDesc('id')->paginate(20)->withQueryString()->through(fn ($score) => [
+            ->orderByDesc('approved_at')->orderByDesc('id')->paginate($perPage)->withQueryString()->through(fn ($score) => [
                 'id' => $score->id, 'title' => $score->assessment->title, 'aspect' => $score->assessment->aspect,
                 'final_score' => $score->value, 'feedback' => $score->feedback, 'review_note' => $score->review_note,
                 'reviewed_at' => $score->approved_at?->toISOString(), 'reviewer' => $score->approver?->only(['id', 'name']),

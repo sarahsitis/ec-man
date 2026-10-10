@@ -1,3 +1,5 @@
+import ClientTablePaging from '@/Components/ClientTablePaging';
+import useTablePagination from '@/hooks/useTablePagination';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -48,7 +50,8 @@ export default function Index({ appointments, candidates, today }: { appointment
             onSuccess: () => { if (editing?.id === revoking.id) { reset(); } setRevoking(null); revoke.reset(); },
         });
     };
-    const visible = appointments.filter(a => filter === 'all' || a.status === filter);
+    const pagination = useTablePagination(appointments.filter(a => filter === 'all' || a.status === filter), filter);
+    const visible = pagination.items;
 
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Panitia EC</h2>}>
         <Head title="Manajemen Panitia EC" />
@@ -117,7 +120,7 @@ export default function Index({ appointments, candidates, today }: { appointment
                             <button disabled={busy} className="text-red-600" onClick={() => { setRevoking(a); revoke.clearErrors(); revoke.reset(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} aria-label={`Cabut hak ${a.user.name}`}>Cabut hak</button>
                         </div>}</td>
                     </tr>)}{!visible.length && <tr><td colSpan={5} className="p-6 text-center text-gray-500">Belum ada penugasan panitia dengan status ini.</td></tr>}</tbody>
-                </table></div>
+                </table></div><ClientTablePaging pagination={pagination} />
             </div>
         </div>
     </AuthenticatedLayout>;

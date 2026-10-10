@@ -27,7 +27,7 @@ class MembershipController extends Controller {
         if ($status !== 'all') { $query->where('status', $status); }
         if ($search !== '') { $query->whereHas('student', fn ($q) => $q->where('full_name', 'like', '%'.$search.'%')->orWhere('student_number', 'like', '%'.$search.'%')->orWhere('class_name', 'like', '%'.$search.'%')); }
         return Inertia::render('Memberships/Index', [
-            'memberships' => $query->orderByDesc('id')->paginate(20)->withQueryString(), 'years' => $years,
+            'memberships' => $query->orderByDesc('id')->paginate(\App\Support\TablePagination::perPage($request))->withQueryString(), 'years' => $years,
             'students' => Student::whereHas('user', fn ($q) => $q->whereIn('role', ['siswa', 'panitia']))
                 ->whereDoesntHave('memberships', fn ($q) => $q->where('academic_year_id', $yearId))
                 ->select('id', 'full_name', 'student_number', 'class_name', 'status')->orderBy('full_name')->get(),

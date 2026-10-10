@@ -1,3 +1,7 @@
+@import './workspace.css';
+@import './landing.css';
+@import './login.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
