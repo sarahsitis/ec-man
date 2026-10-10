@@ -24,7 +24,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware([\App\Http\Middleware\EnsurePembina::class])->group(function () {
-        Route::resource('students', \App\Http\Controllers\StudentController::class);
+        Route::resource('students', \App\Http\Controllers\StudentController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update']);
     });
 });
 
