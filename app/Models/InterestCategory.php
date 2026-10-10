@@ -2,15 +2,5 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-
-class InterestCategory extends Model
-{
-    protected $fillable = ['name'];
-
-    public function studentInterests(): HasMany
-    {
-        return $this->hasMany(StudentInterest::class);
-    }
-}
+// Compatibility name for pre-test callers; the shared catalogue is now stored in interests.
+class InterestCategory extends Interest {}

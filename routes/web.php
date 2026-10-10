@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::get('/penilaian/{assignment}', [AssessmentController::class, 'show'])->name('assessments.show');
     Route::get('/perkembangan-saya', [AssessmentController::class, 'progress'])->name('progress.index');
+    Route::get('/laporan/siswa/{student}', [\App\Http\Controllers\ReportController::class, 'student'])->name('reports.student');
 
     Route::get('/students/{student}/photo', [\App\Http\Controllers\StudentController::class, 'photo'])->name('students.photo');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -67,6 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/students/status-massal', [\App\Http\Controllers\StudentController::class, 'bulkStatus'])->name('students.bulk-status');
         Route::patch('/students/{student}/status', [\App\Http\Controllers\StudentController::class, 'updateStatus'])->name('students.status');
         Route::get('/pre-test/hasil', [PreTestController::class, 'reports'])->name('pretests.reports');
+        Route::get('/laporan/minat', [\App\Http\Controllers\ReportController::class, 'interests'])->name('reports.interests');
         Route::get('/penilaian', [AssessmentController::class, 'index'])->name('assessments.index');
         Route::get('/pemeriksaan-rekomendasi', [AssessmentController::class, 'reviewQueue'])->name('assessments.queue');
         Route::post('/penilaian', [AssessmentController::class, 'store'])->name('assessments.store');

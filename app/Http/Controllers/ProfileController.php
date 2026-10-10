@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\StudentProfileService;
+use App\Services\StudentReportService;
 use App\Models\Student;
 use App\Models\AssessmentAssignment;
 use App\Models\Assessment;
@@ -27,12 +28,13 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, StudentReportService $reports): Response
     {
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'student' => $request->user()->student,
+            'report' => !$request->user()->isPembina() ? $reports->summary($request->user()->student) : null,
         ]);
     }
 

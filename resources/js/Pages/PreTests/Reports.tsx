@@ -19,7 +19,7 @@ export default function Reports({ students, filters, counts }: {
         <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
             <div className="grid gap-4 sm:grid-cols-3">{[[counts.total, 'Total siswa'], [counts.completed, 'Sudah mengisi'], [counts.pending, 'Belum mengisi']].map(([value, label]) => <div key={label} className={panel}><p className="text-sm text-gray-500">{label}</p><p className="mt-2 text-3xl font-semibold">{value}</p></div>)}</div>
             <div className={panel}>
-                <h3 className="text-lg font-semibold">Pemetaan kemampuan dan minat siswa</h3>
+                <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-lg font-semibold">Pemetaan kemampuan dan minat siswa</h3><Link href={route('reports.interests')} className="text-sm font-medium text-indigo-600">Grafik distribusi minat</Link></div>
                 <p className="mt-2 text-sm text-gray-500">Gunakan hasil awal untuk merencanakan latihan dan penugasan. Skor pilihan ganda mengukur bacaan dan penggunaan bahasa. Listening, speaking, reading, dan writing juga dicatat melalui penilaian diri siswa.</p>
                 <form className="my-5 flex flex-wrap items-end gap-3" onSubmit={e=>{e.preventDefault(); router.get(route('pretests.reports'), { search, status }, { preserveState: true });}}>
                     <div className="min-w-48 flex-1"><InputLabel htmlFor="report_search" value="Cari nama, nomor induk, atau kelas" /><input id="report_search" className={field} type="search" maxLength={100} value={search} onChange={e=>setSearch(e.target.value)} /></div>

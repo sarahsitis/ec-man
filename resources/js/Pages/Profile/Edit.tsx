@@ -5,11 +5,13 @@ import { Head } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
+import StudentReportSummary, { StudentReportData } from '@/Components/StudentReportSummary';
 
 export default function Edit({
     status,
     student,
-}: PageProps<{ status?: string; student?: Member | null }>) {
+    report,
+}: PageProps<{ status?: string; student?: Member | null; report: StudentReportData | null }>) {
     return (
         <AuthenticatedLayout
             header={
@@ -22,6 +24,7 @@ export default function Edit({
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+                    {report && <StudentReportSummary report={report} />}
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
                         <UpdateProfileInformationForm
                             status={status}

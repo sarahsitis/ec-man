@@ -45,8 +45,8 @@ class PreTestController extends Controller {
             'answers' => ['required', 'array:'.implode(',', $questionIds)],
             'self_assessment' => ['required', 'array:'.implode(',', $skills)],
             'interest_ids' => ['required', 'array', 'min:1'],
-            'interest_ids.*' => ['required', 'integer', 'distinct', 'exists:interest_categories,id'],
-            'primary_interest_id' => ['required', 'integer', 'exists:interest_categories,id'],
+            'interest_ids.*' => ['required', 'integer', 'distinct', 'exists:interests,id'],
+            'primary_interest_id' => ['required', 'integer', 'exists:interests,id'],
             'learning_goal' => ['required', 'string', 'min:10', 'max:1000'],
         ];
         foreach ($questions as $question) {

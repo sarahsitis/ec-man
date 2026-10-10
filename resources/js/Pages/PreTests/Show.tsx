@@ -10,7 +10,7 @@ export default function Show({ student, result, skills, scales }: PreTestMetadat
         <Head title={`Pre-test ${student.full_name}`} />
         <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
             <Link href={back} className="text-indigo-600">Kembali ke daftar</Link>
-            <div className={panel}><h3 className="text-lg font-semibold">{student.full_name}</h3><p className="mt-1">{student.student_number} · {student.class_name || 'Kelas belum diisi'}</p></div>
+            <div className={panel}><h3 className="text-lg font-semibold">{student.full_name}</h3><p className="mt-1">{student.student_number} · {student.class_name || 'Kelas belum diisi'}</p><Link href={route('reports.student', student.id)} className="mt-3 inline-block text-sm text-indigo-600">Lihat grafik kemampuan & profil siswa</Link></div>
             {result ? <PreTestResultView result={result} skills={skills} scales={scales} /> : <div className={panel}>Siswa belum mengisi pre-test.</div>}
         </div>
     </AuthenticatedLayout>;
