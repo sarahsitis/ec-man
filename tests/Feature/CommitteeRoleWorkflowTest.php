@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AcademicYear;
 use App\Models\Activity;
 use App\Models\AssessmentAssignment;
+use App\Models\Assessment;
 use App\Models\CommitteeRole;
 use App\Models\Membership;
 use App\Models\Student;
@@ -202,6 +203,7 @@ class CommitteeRoleWorkflowTest extends TestCase
         $other = User::factory()->create();
         $student = Student::create(['user_id' => $other->id, 'student_number' => $other->username, 'full_name' => $other->name, 'joined_year' => 2026, 'class_name' => 'X PPLG 1']);
         $assignment = AssessmentAssignment::create([
+            'assessment_id' => Assessment::create(['created_by' => $this->pembina->id, 'title' => 'Speaking', 'aspect' => 'speaking', 'rubric' => AssessmentService::rubric('speaking')])->id,
             'student_id' => $student->id, 'assessor_id' => $this->user->id, 'created_by' => $this->pembina->id,
             'title' => 'Speaking', 'aspect' => 'speaking', 'rubric' => AssessmentService::rubric('speaking'), 'status' => 'assigned',
         ]);

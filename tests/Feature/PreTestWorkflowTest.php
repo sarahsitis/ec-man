@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AssessmentAssignment;
+use App\Models\Assessment;
 use App\Models\InterestCategory;
 use App\Models\Student;
 use App\Models\User;
@@ -176,6 +177,7 @@ class PreTestWorkflowTest extends TestCase {
         $this->actingAs($panitia)->get($url)->assertForbidden();
         $this->get('/pre-test/hasil')->assertForbidden();
         AssessmentAssignment::create([
+            'assessment_id' => Assessment::create(['created_by' => $this->pembina->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking', 'rubric' => AssessmentService::rubric('speaking')])->id,
             'student_id' => $this->student->id, 'assessor_id' => $panitia->id, 'created_by' => $this->pembina->id,
             'title' => 'Storytelling 1', 'aspect' => 'speaking', 'rubric' => AssessmentService::rubric('speaking'), 'status' => 'assigned',
         ]);

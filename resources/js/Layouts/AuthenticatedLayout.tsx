@@ -12,6 +12,7 @@ export default function Authenticated({
     const page = usePage();
     const user = page.props.auth.user;
     const historyTab = new URLSearchParams(page.url.split('?')[1] ?? '').get('status') === 'history';
+    const queueDetail = new URLSearchParams(page.url.split('?')[1] ?? '').get('from') === 'queue';
 
     const menus = user.is_panitia ? [
         { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
@@ -26,7 +27,8 @@ export default function Authenticated({
         { label: 'Panitia EC', href: route('committee-roles.index'), active: route().current('committee-roles.*') },
         { label: 'Keanggotaan', href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
         { label: 'Kegiatan', href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
-        { label: 'Penugasan & Penilaian', href: route('assessments.index'), active: route().current('assessments.*') },
+        { label: 'Penugasan', href: route('assessments.index'), active: route().current('assessments.index') || (route().current('assessments.show') && !queueDetail) },
+        { label: 'Pemeriksaan', href: route('assessments.queue'), active: route().current('assessments.queue') || (route().current('assessments.show') && queueDetail) },
         { label: 'Hasil Pre-test', href: route('pretests.reports'), active: route().current('pretests.*') },
     ] : [
         { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },

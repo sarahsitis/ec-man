@@ -2,12 +2,12 @@
 namespace App\Http\Controllers;
 use App\Models\AssessmentAssignment;
 use App\Models\Student;
+use App\Models\Score;
 use App\Models\User;
 use App\Services\AssessmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class AssessmentController extends Controller {
@@ -20,17 +20,17 @@ class AssessmentController extends Controller {
         abort_unless($assignment->assessor_id === $user->id && $assignment->student->user_id !== $user->id, 403);
     }
     private function entries($query) {
-        return $query->with(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name'])->latest()->paginate(20)->withQueryString();
+        return $query->with(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'officialScore:id,assessment_assignment_id,value'])->latest()->paginate(20)->withQueryString();
     }
     public function index(Request $request) {
         abort_unless($request->user()->isPembina(), 403);
-        $status = $request->validate(['status' => ['nullable', Rule::in(['all', 'submitted', 'approved', 'revision'])]])['status'] ?? 'all';
+        $status = $request->validate(['status' => ['nullable', Rule::in(['all', 'assigned', 'draft', 'submitted', 'approved', 'revision', 'rejected'])]])['status'] ?? 'all';
         $query = AssessmentAssignment::query();
         if ($status !== 'all') { $query->where('status', $status); }
         return Inertia::render('Assessments/Index', [
             'status' => $status, 'pendingCount' => AssessmentAssignment::where('status', 'submitted')->count(),
             'assignments' => $this->entries($query),
-            'students' => Student::select('id', 'user_id', 'full_name', 'student_number', 'class_name')->orderBy('full_name')->get(),
+            'students' => Student::where('status', 'active')->select('id', 'user_id', 'full_name', 'student_number', 'class_name')->orderBy('full_name')->get(),
             'assessors' => User::activeCommittee()->select('id', 'name')->orderBy('name')->get(),
             'aspects' => AssessmentService::ASPECTS,
         ]);
@@ -44,39 +44,35 @@ class AssessmentController extends Controller {
             'assessor_id' => ['required', 'integer', Rule::exists('users', 'id')->where('role', 'panitia')],
             'aspect' => ['required', Rule::in(AssessmentService::ASPECTS)],
             'title' => ['required', 'string', 'max:150'],
+            'instructions' => ['nullable', 'string', 'max:4000'],
             'due_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.now('Asia/Jakarta')->format('Y-m-d')],
         ]);
+        $service->delegate($request->user(), $data);
         $studentIds = $data['student_ids'] ?? [$data['student_id']];
-        $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
-        $assessor = User::findOrFail($data['assessor_id']);
-        foreach ($studentIds as $index => $studentId) {
-            if ($students[$studentId]->user_id === $assessor->id) {
-                throw ValidationException::withMessages([isset($data['student_ids']) ? 'student_ids.'.$index : 'student_id' => 'Panitia tidak boleh menilai dirinya sendiri.']);
-            }
-        }
-        if (!$assessor->isPanitia()) {
-            throw ValidationException::withMessages(['assessor_id' => 'Pilih panitia siswa aktif kelas XI/XII dengan masa tugas yang masih berlaku.']);
-        }
-        DB::transaction(function () use ($request, $data, $studentIds, $students, $service) {
-            $duplicates = AssessmentAssignment::whereIn('student_id', $studentIds)
-                ->where('title', $data['title'])->where('aspect', $data['aspect'])->pluck('student_id')->all();
-            $errors = [];
-            foreach ($studentIds as $index => $studentId) {
-                if (in_array((int) $studentId, $duplicates)) {
-                    $errors[isset($data['student_ids']) ? 'student_ids.'.$index : 'title'] = 'Penugasan dengan judul dan aspek ini sudah ada untuk '.$students[$studentId]->full_name.'.';
-                }
-            }
-            if ($errors) { throw ValidationException::withMessages($errors); }
-            foreach ($studentIds as $studentId) {
-                $assignment = AssessmentAssignment::create([
-                    'student_id' => $studentId, 'assessor_id' => $data['assessor_id'],
-                    'title' => $data['title'], 'aspect' => $data['aspect'], 'due_date' => $data['due_date'] ?? null,
-                    'created_by' => $request->user()->id, 'status' => 'assigned', 'rubric' => AssessmentService::rubric($data['aspect']),
-                ]);
-                $service->event($assignment, $request->user(), 'assigned', ['assessor_id' => $assignment->assessor_id, 'student_id' => $assignment->student_id]);
-            }
-        });
         return back()->with('success', 'Penugasan untuk '.count($studentIds).' siswa dibuat.');
+    }
+
+    public function reviewQueue(Request $request) {
+        abort_unless($request->user()->isPembina(), 403);
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['submitted', 'approved', 'revision', 'rejected'])],
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+        $status = $filters['status'] ?? 'submitted';
+        $search = $filters['search'] ?? '';
+        $query = AssessmentAssignment::with(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'officialScore:id,assessment_assignment_id,value'])
+            ->where('status', $status);
+        if ($search !== '') {
+            $query->where(fn ($q) => $q->where('title', 'like', '%'.$search.'%')
+                ->orWhereHas('student', fn ($s) => $s->where('full_name', 'like', '%'.$search.'%')->orWhere('student_number', 'like', '%'.$search.'%'))
+                ->orWhereHas('assessor', fn ($a) => $a->where('name', 'like', '%'.$search.'%')));
+        }
+        $status === 'submitted' ? $query->orderBy('submitted_at')->orderBy('id') : $query->orderByDesc('reviewed_at')->orderByDesc('id');
+        return Inertia::render('Assessments/Queue', [
+            'assignments' => $query->paginate(20)->withQueryString(),
+            'filters' => ['status' => $status, 'search' => $search],
+            'counts' => AssessmentAssignment::select('status')->selectRaw('count(*) as total')->groupBy('status')->pluck('total', 'status'),
+        ]);
     }
     public function committeeDashboard(Request $request) {
         $user = $this->panitia($request);
@@ -98,8 +94,9 @@ class AssessmentController extends Controller {
     public function show(Request $request, AssessmentAssignment $assignment) {
         if (!$request->user()->isPembina()) { $this->scoped($request, $assignment); }
         return Inertia::render('Assessments/Show', [
-            'assignment' => $assignment->load(['student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'events']),
+            'assignment' => $assignment->load(['assessment:id,instructions', 'student:id,user_id,full_name,student_number,class_name', 'assessor:id,name', 'reviewer:id,name', 'officialScore.approver:id,name', 'events']),
             'expired' => $assignment->expired(),
+            'nextPendingId' => $request->user()->isPembina() ? AssessmentAssignment::where('status', 'submitted')->where('id', '!=', $assignment->id)->orderBy('submitted_at')->orderBy('id')->value('id') : null,
         ]);
     }
     public function recommend(Request $request, AssessmentAssignment $assignment, AssessmentService $service) {
@@ -123,7 +120,7 @@ class AssessmentController extends Controller {
             'review_note' => [$approve ? 'nullable' : 'required', 'string', 'max:2000'],
         ]);
         $service->review($assignment, $request->user(), $data);
-        return back()->with('success', 'Keputusan pembina disimpan.');
+        return back()->with('success', $approve ? 'Rekomendasi disahkan dan nilai resmi diterbitkan.' : 'Keputusan pembina disimpan.');
     }
     public function extendDeadline(Request $request, AssessmentAssignment $assignment, AssessmentService $service) {
         abort_unless($request->user()->isPembina(), 403);
@@ -138,9 +135,14 @@ class AssessmentController extends Controller {
     }
     public function progress(Request $request) {
         abort_unless(!$request->user()->isPembina(), 403);
-        $query = AssessmentAssignment::whereHas('student', fn ($q) => $q->where('user_id', $request->user()->id))->where('status', 'approved');
-        // Only published outcomes; do not expose proposals or internal observation/audit data.
-        $grades = $query->with('reviewer:id,name')->select('id', 'title', 'aspect', 'final_score', 'feedback', 'review_note', 'reviewed_at', 'reviewed_by')->orderByDesc('reviewed_at')->paginate(20);
+        // Publish only official score snapshots, without proposals or internal observation/audit data.
+        $grades = Score::whereHas('student', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->with(['assessment:id,title,aspect', 'approver:id,name'])->orderByDesc('approved_at')->orderByDesc('id')->paginate(20)
+            ->through(fn ($score) => [
+                'id' => $score->id, 'title' => $score->assessment->title, 'aspect' => $score->assessment->aspect,
+                'final_score' => $score->value, 'feedback' => $score->feedback, 'review_note' => $score->review_note,
+                'reviewed_at' => $score->approved_at?->toISOString(), 'reviewer' => $score->approver?->only(['id', 'name']),
+            ]);
         return Inertia::render('Progress/Index', ['grades' => $grades]);
     }
 }

@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/students/{student}/status', [\App\Http\Controllers\StudentController::class, 'updateStatus'])->name('students.status');
         Route::get('/pre-test/hasil', [PreTestController::class, 'reports'])->name('pretests.reports');
         Route::get('/penilaian', [AssessmentController::class, 'index'])->name('assessments.index');
+        Route::get('/pemeriksaan-rekomendasi', [AssessmentController::class, 'reviewQueue'])->name('assessments.queue');
         Route::post('/penilaian', [AssessmentController::class, 'store'])->name('assessments.store');
         Route::post('/penilaian/{assignment}/batas-waktu', [AssessmentController::class, 'extendDeadline'])->name('assessments.deadline');
         Route::post('/penilaian/{assignment}/keputusan', [AssessmentController::class, 'review'])->name('assessments.review');

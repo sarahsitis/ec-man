@@ -2,6 +2,7 @@
 namespace Tests\Feature;
 
 use App\Models\AssessmentAssignment;
+use App\Models\Assessment;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\AssessmentService;
@@ -32,7 +33,9 @@ class AssessmentWorkflowTest extends TestCase
         return Student::create(['user_id'=>$user->id,'student_number'=>$user->username,'full_name'=>$user->name,'joined_year'=>2026,'class_name'=>$class]);
     }
     private function assignment(): AssessmentAssignment {
+        $assessment = Assessment::create(['created_by' => $this->pembina->id, 'title' => 'Storytelling 1', 'aspect' => 'speaking', 'rubric' => AssessmentService::rubric('speaking')]);
         return AssessmentAssignment::create([
+            'assessment_id' => $assessment->id,
             'student_id'=>$this->student->id,'assessor_id'=>$this->panitia->id,'created_by'=>$this->pembina->id,
             'title'=>'Storytelling 1','aspect'=>'speaking','rubric'=>AssessmentService::rubric('speaking'),
             'status'=>'assigned',
@@ -222,7 +225,9 @@ class AssessmentWorkflowTest extends TestCase
         $other = $this->account('1004', 'panitia');
         $this->member($other, 'XII RPL 1');
         $foreign = $own->replicate();
-        $foreign->fill(['title' => 'Other task', 'assessor_id' => $other->id])->save();
+        $assessment = $own->assessment->replicate();
+        $assessment->fill(['title' => 'Other task'])->save();
+        $foreign->fill(['assessment_id' => $assessment->id, 'title' => 'Other task', 'assessor_id' => $other->id])->save();
         // Guard against invalid records from older imports or manual changes.
         $self = $own->replicate();
         $self->fill(['title' => 'Self task', 'student_id' => $this->panitia->student->id])->save();

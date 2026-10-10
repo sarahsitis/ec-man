@@ -6,6 +6,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\StudentProfileService;
 use App\Models\Student;
 use App\Models\AssessmentAssignment;
+use App\Models\Assessment;
+use App\Models\Score;
 use App\Models\AssessmentEvent;
 use App\Models\Activity;
 use App\Models\Attendance;
@@ -74,7 +76,8 @@ class ProfileController extends Controller
         $hasMembership = $user->student && ($user->student->memberships()->exists() || $user->student->attendances()->exists());
         $hasActivity = Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
         $hasCommitteeHistory = CommitteeRole::where('user_id', $user->id)->orWhere('appointed_by', $user->id)->orWhere('revoked_by', $user->id)->exists();
-        if ($hasAssignments || $hasGrades || $hasEvents || $hasPreTest || $hasMembership || $hasActivity || $hasCommitteeHistory) {
+        $hasOfficialHistory = Assessment::where('created_by', $user->id)->exists() || Score::where('approved_by', $user->id)->exists();
+        if ($hasAssignments || $hasGrades || $hasEvents || $hasPreTest || $hasMembership || $hasActivity || $hasCommitteeHistory || $hasOfficialHistory) {
             throw ValidationException::withMessages(['password' => 'Akun ini terkait riwayat keanggotaan, kegiatan, atau penilaian dan tidak dapat dihapus. Hubungi pembina.']);
         }
 
