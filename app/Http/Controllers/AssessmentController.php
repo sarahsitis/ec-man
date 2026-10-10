@@ -31,7 +31,7 @@ class AssessmentController extends Controller {
             'status' => $status, 'pendingCount' => AssessmentAssignment::where('status', 'submitted')->count(),
             'assignments' => $this->entries($query),
             'students' => Student::select('id', 'user_id', 'full_name', 'student_number', 'class_name')->orderBy('full_name')->get(),
-            'assessors' => User::where('role', 'panitia')->select('id', 'name')->orderBy('name')->get(),
+            'assessors' => User::activeCommittee()->select('id', 'name')->orderBy('name')->get(),
             'aspects' => AssessmentService::ASPECTS,
         ]);
     }
@@ -54,8 +54,8 @@ class AssessmentController extends Controller {
                 throw ValidationException::withMessages([isset($data['student_ids']) ? 'student_ids.'.$index : 'student_id' => 'Panitia tidak boleh menilai dirinya sendiri.']);
             }
         }
-        if (!$assessor->student || !preg_match('/^(XI|XII)(?:\s|$)/i', trim($assessor->student->class_name ?? ''))) {
-            throw ValidationException::withMessages(['assessor_id' => 'Lengkapi kelas XI/XII panitia melalui Edit Anggota.']);
+        if (!$assessor->isPanitia()) {
+            throw ValidationException::withMessages(['assessor_id' => 'Pilih panitia siswa aktif kelas XI/XII dengan masa tugas yang masih berlaku.']);
         }
         DB::transaction(function () use ($request, $data, $studentIds, $students, $service) {
             $duplicates = AssessmentAssignment::whereIn('student_id', $studentIds)
@@ -84,6 +84,7 @@ class AssessmentController extends Controller {
         $counts = (clone $query)->select('status')->selectRaw('count(*) as total')->groupBy('status')->pluck('total', 'status');
         return Inertia::render('Panitia/Dashboard', [
             'counts' => $counts,
+            'committeeTerm' => $user->committeeRoles()->active()->first(['starts_on', 'ends_on']),
             'recent' => (clone $query)->with(['student:id,full_name,student_number,class_name', 'assessor:id,name'])->latest()->limit(5)->get(),
         ]);
     }

@@ -33,7 +33,7 @@ export default function Index({ assignments, students, assessors, aspects, pendi
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Penugasan dan Penilaian</h2>}>
         <Head title="Penugasan dan Penilaian" /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
             <div className={panel}><h3 className="text-lg font-semibold">Buat penugasan panitia</h3><p className="mt-1 text-sm text-gray-500">Pilih satu panitia untuk menilai beberapa siswa sekaligus. Skor dan catatan penilaian disimpan per siswa. Gunakan judul berbeda untuk tugas atau pertemuan yang berbeda.</p>
-                {assessors.length === 0 && <p className="mt-3 text-amber-700">Belum ada panitia. Tetapkan role panitia dan kelas XI/XII melalui Edit Anggota.</p>}
+                {assessors.length === 0 && <p className="mt-3 text-amber-700">Belum ada panitia aktif. Angkat siswa kelas XI/XII dan atur masa tugas melalui menu Panitia EC.</p>}
                 <form onSubmit={submit} className="mt-4 grid gap-4 md:grid-cols-2">
                     <div><InputLabel htmlFor="assessor_id" value="Panitia penilai" /><select id="assessor_id" className={field} required value={form.data.assessor_id} onChange={e=>selectAssessor(e.target.value)}><option value="">Pilih panitia</option>{assessors.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select><InputError message={form.errors.assessor_id}/></div>
                     <fieldset className="md:col-span-2 md:row-start-2">

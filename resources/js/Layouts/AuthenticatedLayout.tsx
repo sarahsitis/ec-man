@@ -13,7 +13,7 @@ export default function Authenticated({
     const user = page.props.auth.user;
     const historyTab = new URLSearchParams(page.url.split('?')[1] ?? '').get('status') === 'history';
 
-    const menus = user.role === 'panitia' ? [
+    const menus = user.is_panitia ? [
         { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
         { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
         { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
@@ -23,6 +23,7 @@ export default function Authenticated({
     ] : user.role === 'pembina' ? [
         { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
         { label: 'Anggota', href: route('students.index'), active: route().current('students.*') },
+        { label: 'Panitia EC', href: route('committee-roles.index'), active: route().current('committee-roles.*') },
         { label: 'Keanggotaan', href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
         { label: 'Kegiatan', href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
         { label: 'Penugasan & Penilaian', href: route('assessments.index'), active: route().current('assessments.*') },
@@ -63,7 +64,7 @@ export default function Authenticated({
                                                 type="button"
                                                 className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                             >
-                                                {user.name}{user.role === 'panitia' && ' · Panitia EC'}
+                                                {user.name}{user.is_panitia && ' · Panitia EC'}
 
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
@@ -155,7 +156,7 @@ export default function Authenticated({
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
                         <div className="px-4">
                             <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}{user.role === 'panitia' && ' · Panitia EC'}
+                                {user.name}{user.is_panitia && ' · Panitia EC'}
                             </div>
                             <div className="text-sm font-medium text-gray-500">
                                 {user.username}

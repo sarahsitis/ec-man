@@ -29,7 +29,11 @@ class MembershipManagementTest extends TestCase {
     }
 
     private function account(string $code, string $role): User {
-        return User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        $user = User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        if ($role === 'panitia') {
+            $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addYear()->toDateString()]);
+        }
+        return $user;
     }
 
     private function member(string $code, string $status = 'active'): Student {
@@ -138,6 +142,7 @@ class MembershipManagementTest extends TestCase {
     }
 
     public function test_panitia_and_students_cannot_manage_memberships_years_or_student_status(): void {
+        Student::create(['user_id' => $this->panitia->id, 'student_number' => '1003', 'full_name' => $this->panitia->name, 'joined_year' => 2026, 'class_name' => 'XI PPLG - RPL 1', 'status' => 'active']);
         $membership = Membership::create(['student_id' => $this->student->id, 'academic_year_id' => $this->year->id, 'status' => 'active']);
         foreach ([$this->panitia, $this->student->user] as $actor) {
             $this->actingAs($actor)->get('/keanggotaan')->assertForbidden();

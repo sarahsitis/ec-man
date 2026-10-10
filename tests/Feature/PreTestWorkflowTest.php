@@ -27,7 +27,11 @@ class PreTestWorkflowTest extends TestCase {
     }
 
     private function account(string $code, string $role): User {
-        return User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        $user = User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        if ($role === 'panitia') {
+            $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addYear()->toDateString()]);
+        }
+        return $user;
     }
 
     private function member(User $user, string $class): Student {

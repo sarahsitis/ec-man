@@ -22,7 +22,11 @@ class AssessmentWorkflowTest extends TestCase
         $this->student = $this->member($this->account('2001', 'siswa'), 'X RPL 1');
     }
     private function account(string $code, string $role): User {
-        return User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        $user = User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        if ($role === 'panitia') {
+            $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addYear()->toDateString()]);
+        }
+        return $user;
     }
     private function member(User $user, string $class): Student {
         return Student::create(['user_id'=>$user->id,'student_number'=>$user->username,'full_name'=>$user->name,'joined_year'=>2026,'class_name'=>$class]);

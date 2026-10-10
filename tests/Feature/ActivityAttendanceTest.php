@@ -25,13 +25,18 @@ class ActivityAttendanceTest extends TestCase {
         parent::setUp(); $this->withoutVite();
         $this->pembina = $this->account('admin', 'pembina');
         $this->panitia = $this->account('1003', 'panitia');
+        Student::create(['user_id' => $this->panitia->id, 'student_number' => '1003', 'full_name' => $this->panitia->name, 'joined_year' => 2026, 'class_name' => 'XI PPLG - RPL 1', 'status' => 'active']);
         $this->year = AcademicYear::create(['name' => '2026/2027', 'semester' => 'ganjil', 'is_active' => true]);
         $this->first = $this->member('2001'); $this->second = $this->member('2002');
         foreach ([$this->first, $this->second] as $student) { $this->enroll($student); }
     }
 
     private function account(string $code, string $role): User {
-        return User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        $user = User::create(['name' => 'User '.$code, 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        if ($role === 'panitia') {
+            $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addYear()->toDateString()]);
+        }
+        return $user;
     }
 
     private function member(string $code, string $status = 'active'): Student {

@@ -58,6 +58,33 @@ class User extends Authenticatable
     }
     public function isPanitia(): bool
     {
-        return $this->role === 'panitia';
+        return $this->role === 'panitia'
+            && $this->studentEligibleForCommittee()
+            && $this->committeeRoles()->active()->exists();
+    }
+
+    public function committeeRoles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CommitteeRole::class);
+    }
+
+    public function studentEligibleForCommittee(): bool
+    {
+        $student = $this->student;
+        return $student && $student->status === 'active'
+            && (bool) preg_match('/^(XI|XII)(?:\s|$)/i', trim($student->class_name ?? ''));
+    }
+
+    public function committeeClassLocked(): bool
+    {
+        return $this->committeeRoles()->upcomingOrActive()->exists();
+    }
+
+    public function scopeActiveCommittee(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('role', 'panitia')
+            ->whereHas('committeeRoles', fn ($roles) => $roles->active())
+            ->whereHas('student', fn ($students) => $students->where('status', 'active')
+                ->where(fn ($classes) => $classes->where('class_name', 'like', 'XI %')->orWhere('class_name', 'like', 'XII %')));
     }
 }

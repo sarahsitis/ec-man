@@ -9,6 +9,7 @@ use App\Models\AssessmentAssignment;
 use App\Models\AssessmentEvent;
 use App\Models\Activity;
 use App\Models\Attendance;
+use App\Models\CommitteeRole;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -72,7 +73,8 @@ class ProfileController extends Controller
         $hasPreTest = $user->student && $user->student->preTestResult()->exists();
         $hasMembership = $user->student && ($user->student->memberships()->exists() || $user->student->attendances()->exists());
         $hasActivity = Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
-        if ($hasAssignments || $hasGrades || $hasEvents || $hasPreTest || $hasMembership || $hasActivity) {
+        $hasCommitteeHistory = CommitteeRole::where('user_id', $user->id)->orWhere('appointed_by', $user->id)->orWhere('revoked_by', $user->id)->exists();
+        if ($hasAssignments || $hasGrades || $hasEvents || $hasPreTest || $hasMembership || $hasActivity || $hasCommitteeHistory) {
             throw ValidationException::withMessages(['password' => 'Akun ini terkait riwayat keanggotaan, kegiatan, atau penilaian dan tidak dapat dihapus. Hubungi pembina.']);
         }
 

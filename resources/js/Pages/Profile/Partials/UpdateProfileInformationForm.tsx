@@ -16,7 +16,7 @@ function StudentProfile({ student }: { student?: Member | null }) {
     const submit: FormEventHandler = e => {
         e.preventDefault();
         form.transform(data => {
-            if (user.role === 'panitia') {
+            if (user.committee_class_locked) {
                 const { class_name, ...permitted } = data;
                 return permitted;
             }
@@ -28,8 +28,8 @@ function StudentProfile({ student }: { student?: Member | null }) {
         <div><InputLabel htmlFor="full_name" value="Nama lengkap" /><TextInput id="full_name" value={student?.full_name ?? user.name} readOnly className="mt-1 block w-full bg-gray-100" /></div>
         <div><InputLabel htmlFor="student_number" value="NIS" /><TextInput id="student_number" value={student?.student_number ?? user.username} readOnly className="mt-1 block w-full bg-gray-100" /></div>
         <p className="text-sm text-gray-500">Untuk memperbaiki nama atau NIS, hubungi pembina English Club.</p>
-        {user.role === 'panitia' && <p className="text-sm text-gray-500">Perubahan kelas panitia dilakukan oleh pembina.</p>}
-        <StudentContactFields lockClass={user.role === 'panitia'} data={form.data} errors={form.errors} onText={(k,v) => form.setData(k,v)} onPhoto={f => form.setData('profile_photo',f)} photoUrl={student?.profile_photo_url} />
+        {user.committee_class_locked && <p className="text-sm text-gray-500">Perubahan kelas panitia dilakukan oleh pembina.</p>}
+        <StudentContactFields lockClass={user.committee_class_locked} data={form.data} errors={form.errors} onText={(k,v) => form.setData(k,v)} onPhoto={f => form.setData('profile_photo',f)} photoUrl={student?.profile_photo_url} />
         <PrimaryButton disabled={form.processing}>Simpan profil</PrimaryButton>
         {form.recentlySuccessful && <p role="status">Profil tersimpan.</p>}
     </form>;

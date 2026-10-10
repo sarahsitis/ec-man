@@ -5,7 +5,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Show({ student, result, skills, scales }: PreTestMetadata & { student: PreTestStudent; result: PreTestResult | null }) {
     const user = usePage().props.auth.user;
-    const back = user.role === 'pembina' ? route('pretests.reports') : user.role === 'panitia' ? route('panitia.assignments') : route('pretests.index');
+    const back = user.role === 'pembina' ? route('pretests.reports') : user.is_panitia ? route('panitia.assignments') : route('pretests.index');
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Hasil Pre-test Siswa</h2>}>
         <Head title={`Pre-test ${student.full_name}`} />
         <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">

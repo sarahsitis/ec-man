@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MigrationCompatibilityTest extends TestCase
@@ -32,6 +33,31 @@ class MigrationCompatibilityTest extends TestCase
         $this->assertSame($user->id, $student->fresh()->user_id);
         $this->assertSame('08123456789', $student->fresh()->phone);
         $user->update(['role' => 'panitia']);
+        $this->assertFalse($user->fresh()->isPanitia());
+        $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addMonth()->toDateString()]);
         $this->assertTrue($user->fresh()->isPanitia());
+    }
+
+    public static function legacySemesters(): array
+    {
+        return [['2026-10-09', '2026-12-31', '2027-01-01'], ['2026-03-31', '2026-06-30', '2026-07-01']];
+    }
+
+    #[DataProvider('legacySemesters')]
+    public function test_existing_panitia_gets_bounded_appointment_without_changing_identity(string $today, string $end, string $expired): void
+    {
+        $this->travelTo(\Illuminate\Support\Carbon::parse($today.' 12:00:00', 'Asia/Jakarta'));
+        $migration = require database_path('migrations/2026_10_09_120000_create_committee_roles_table.php');
+        $migration->down();
+        $user = User::factory()->create(['role' => 'panitia']);
+        $student = Student::create(['user_id' => $user->id, 'student_number' => $user->username, 'full_name' => $user->name, 'joined_year' => 2026, 'class_name' => 'XI RPL 1', 'status' => 'active']);
+        $password = $user->password;
+        $migration->up();
+        $this->assertDatabaseHas('committee_roles', ['user_id' => $user->id, 'starts_on' => $today, 'ends_on' => $end, 'appointed_by' => null]);
+        $this->assertTrue($user->fresh()->isPanitia());
+        $this->assertSame($password, $user->fresh()->password);
+        $this->assertSame($user->id, $student->fresh()->user_id);
+        $this->travelTo(\Illuminate\Support\Carbon::parse($expired.' 00:00:00', 'Asia/Jakarta'));
+        $this->assertFalse($user->fresh()->isPanitia());
     }
 }

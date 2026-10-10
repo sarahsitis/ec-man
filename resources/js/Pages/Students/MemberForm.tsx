@@ -5,7 +5,7 @@ import TextInput from '@/Components/TextInput';
 import StudentContactFields, { ContactData } from '@/Components/StudentContactFields';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { ManagementNav, studentStatuses } from '@/Components/ManagementUi';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 export interface Member {
@@ -16,12 +16,12 @@ export interface Member {
 }
 export default function MemberForm({ student }: { student?: Member }) {
     const title = student ? 'Edit Anggota' : 'Tambah Anggota';
-    const form = useForm<ContactData & { student_number: string; full_name: string; joined_year: string; _method: string; role: string; status: string }>({
+    const form = useForm<ContactData & { student_number: string; full_name: string; joined_year: string; _method: string; status: string }>({
         student_number: student?.student_number ?? '', full_name: student?.full_name ?? '',
         joined_year: String(student?.joined_year ?? new Date().getFullYear()),
         phone: student?.phone ?? '', class_name: student?.class_name ?? '',
         email: student?.email ?? '', address: student?.address ?? '', profile_photo: null,
-        _method: student ? 'PUT' : 'POST', role: student?.user?.role ?? 'siswa',
+        _method: student ? 'PUT' : 'POST',
         status: student?.status ?? 'active',
     });
     const submit: FormEventHandler = e => {
@@ -44,14 +44,7 @@ export default function MemberForm({ student }: { student?: Member }) {
                     <TextInput id="joined_year" type="number" min="2000" max={new Date().getFullYear()} value={form.data.joined_year} onChange={e => form.setData('joined_year', e.target.value)} required className="mt-1 block w-full" />
                     <InputError message={form.errors.joined_year} />
                 </div>
-                <div><InputLabel htmlFor="role" value="Peran anggota" />
-                    <select id="role" value={form.data.role} onChange={e => form.setData('role', e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 text-gray-900">
-                        <option value="siswa">Siswa</option>
-                        <option value="panitia">Panitia EC — Asisten penilai</option>
-                    </select>
-                    <p className="mt-1 text-sm text-gray-500">Panitia dipilih dari kelas XI atau XII. Nilai resmi tetap disahkan pembina.</p>
-                    <InputError message={form.errors.role} />
-                </div>
+                <p className="text-sm text-gray-500">Pengangkatan siswa aktif kelas XI/XII, masa tugas, dan pencabutan hak dikelola melalui <Link href={route('committee-roles.index')} className="text-indigo-600 underline">Panitia EC</Link>.</p>
                 <StudentContactFields data={form.data} errors={form.errors} onText={(k,v) => form.setData(k,v)} onPhoto={f => form.setData('profile_photo', f)} photoUrl={student?.profile_photo_url} />
                 <div><InputLabel htmlFor="student_status" value="Status siswa" /><select id="student_status" className="mt-1 block w-full rounded-md border-gray-300 text-gray-900" value={form.data.status} onChange={e=>form.setData('status', e.target.value)}>{Object.entries(studentStatuses).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><InputError message={form.errors.status} /><p className="mt-1 text-sm text-gray-500">Status nonaktif, keluar, dan alumni mempertahankan riwayat. Siswa tersebut tidak ditambahkan sebagai peserta aktif pada presensi baru.</p></div>
                 <PrimaryButton disabled={form.processing}>Simpan</PrimaryButton>

@@ -12,7 +12,7 @@ export default function Show({ activity, students, attendances, myAttendance, at
     attendanceStatuses: Record<string, string>; activityStatuses: Record<string, string>;
 }) {
     const page = usePage(); const user = page.props.auth.user;
-    const staff = user.role!=='siswa'; const pembina = user.role==='pembina';
+    const pembina = user.role === 'pembina'; const staff = pembina || user.is_panitia;
     const [search, setSearch] = useState(''); const [selected, setSelected] = useState<number[]>([]); const [bulkStatus, setBulkStatus] = useState('hadir');
     const form = useForm({ entries: {} as Record<string, string> });
     const saved = new Map(attendances.map(a=>[a.student_id,a]));

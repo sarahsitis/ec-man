@@ -24,5 +24,6 @@ export function ManagementNav() {
         ['students.index', 'Data siswa', 'students.*'], ['memberships.index', 'Keanggotaan', 'memberships.*'],
         ['academic-years.index', 'Tahun ajaran', 'academic-years.*'], ['activities.index', 'Kegiatan & Presensi', 'activities.*'],
         ['activity-schemes.index', 'Skema kegiatan', 'activity-schemes.*'],
+        ['committee-roles.index', 'Panitia EC', 'committee-roles.*'],
     ].map(([name, label, match]) => <Link key={name} href={route(name)} className={`rounded px-3 py-2 text-sm ${route().current(match) ? 'bg-indigo-100 font-semibold text-indigo-900' : 'bg-white text-indigo-600 dark:bg-gray-800'}`}>{label}</Link>)}</nav>;
 }

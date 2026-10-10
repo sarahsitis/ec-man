@@ -3,7 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Dashboard() {
     const user = usePage().props.auth.user;
-    const roleLabel = user.role === 'pembina' ? 'Pembina' : user.role === 'panitia' ? 'Panitia EC — Asisten Penilai' : 'Siswa';
+    const roleLabel = user.role === 'pembina' ? 'Pembina' : user.is_panitia ? 'Panitia EC — Asisten Penilai' : 'Siswa';
     return (
         <AuthenticatedLayout
             header={

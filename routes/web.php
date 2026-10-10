@@ -32,10 +32,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/pre-test', [PreTestController::class, 'index'])->name('pretests.index');
     Route::post('/pre-test', [PreTestController::class, 'store'])->name('pretests.store');
     Route::get('/pre-test/siswa/{student}', [PreTestController::class, 'show'])->name('pretests.show');
-    Route::get('/panitia/dashboard', [AssessmentController::class, 'committeeDashboard'])->name('panitia.dashboard');
-    Route::get('/panitia/penugasan', [AssessmentController::class, 'committeeIndex'])->name('panitia.assignments');
+    Route::middleware(\App\Http\Middleware\EnsureActiveCommittee::class)->group(function () {
+        Route::get('/panitia/dashboard', [AssessmentController::class, 'committeeDashboard'])->name('panitia.dashboard');
+        Route::get('/panitia/penugasan', [AssessmentController::class, 'committeeIndex'])->name('panitia.assignments');
+        Route::post('/penilaian/{assignment}/rekomendasi', [AssessmentController::class, 'recommend'])->name('assessments.recommend');
+    });
     Route::get('/penilaian/{assignment}', [AssessmentController::class, 'show'])->name('assessments.show');
-    Route::post('/penilaian/{assignment}/rekomendasi', [AssessmentController::class, 'recommend'])->name('assessments.recommend');
     Route::get('/perkembangan-saya', [AssessmentController::class, 'progress'])->name('progress.index');
 
     Route::get('/students/{student}/photo', [\App\Http\Controllers\StudentController::class, 'photo'])->name('students.photo');
@@ -44,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware([\App\Http\Middleware\EnsurePembina::class])->group(function () {
+        Route::resource('panitia-ec', \App\Http\Controllers\CommitteeRoleController::class)
+            ->only(['index', 'store', 'update', 'destroy'])->names('committee-roles')->parameters(['panitia-ec' => 'committeeRole']);
         Route::get('/tahun-ajaran', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/tahun-ajaran', [AcademicYearController::class, 'store'])->name('academic-years.store');
         Route::post('/tahun-ajaran/{academicYear}/aktifkan', [AcademicYearController::class, 'activate'])->name('academic-years.activate');

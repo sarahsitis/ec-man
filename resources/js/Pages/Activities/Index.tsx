@@ -12,7 +12,7 @@ export default function Index({ activities, years, statuses, filters }: {
 }) {
     const user = usePage().props.auth.user;
     const pembina = user.role==='pembina';
-    const staff = user.role!=='siswa';
+    const staff = pembina || user.is_panitia;
     const [search, setSearch] = useState(filters.search);
     const [status, setStatus] = useState(filters.status);
     const [year, setYear] = useState(String(filters.academic_year_id || ''));

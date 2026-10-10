@@ -7,6 +7,7 @@ use App\Models\AssessmentAssignment;
 use App\Models\AssessmentEvent;
 use App\Models\Activity;
 use App\Models\Attendance;
+use App\Models\CommitteeRole;
 use App\Services\StudentProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -22,11 +23,14 @@ class StudentController extends Controller
         $filters = $request->validate(['status' => ['nullable', Rule::in(array_merge(['all'], array_keys(Student::STATUSES)))], 'search' => ['nullable', 'string', 'max:100']]);
         $status = $filters['status'] ?? 'all';
         $search = $filters['search'] ?? '';
-        $query = Student::with(['user', 'memberships.academicYear']);
+        $query = Student::with(['user' => fn ($q) => $q->withExists(['committeeRoles as has_active_committee_term' => fn ($roles) => $roles->active()]), 'memberships.academicYear']);
         if ($status !== 'all') { $query->where('status', $status); }
         if ($search !== '') { $query->where(fn ($q) => $q->where('full_name', 'like', '%'.$search.'%')->orWhere('student_number', 'like', '%'.$search.'%')->orWhere('class_name', 'like', '%'.$search.'%')); }
         return Inertia::render('Students/Index', [
-            'students' => $query->latest()->get(), 'statuses' => Student::STATUSES,
+            'students' => $query->latest()->get()->each(function ($student) {
+                $student->user->setAttribute('is_panitia', $student->user->role === 'panitia' && $student->user->has_active_committee_term
+                    && $student->status === 'active' && (bool) preg_match('/^(XI|XII)(?:\s|$)/i', trim($student->class_name ?? '')));
+            }), 'statuses' => Student::STATUSES,
             'filters' => ['status' => $status, 'search' => $search],
         ]);
     }
@@ -37,7 +41,7 @@ class StudentController extends Controller
             'student_number' => ['required', 'string', 'max:255',
                 Rule::unique('students', 'student_number')->ignore($student?->id),
                 Rule::unique('users', 'username')->ignore($student?->user_id)],
-            'role' => ['sometimes', 'required', Rule::in(['siswa', 'panitia'])],
+            'role' => ['sometimes', 'required', Rule::in($student?->user->role === 'panitia' ? ['siswa', 'panitia'] : ['siswa'])],
             'status' => ['sometimes', 'required', Rule::in(array_keys(Student::STATUSES))],
             'full_name' => ['required', 'string', 'max:255'],
             'joined_year' => ['required', 'integer', 'min:2000', 'max:'.date('Y')],
@@ -46,7 +50,7 @@ class StudentController extends Controller
     private function validatePanitiaClass(array $data, ?Student $student = null): void {
         $role = $data['role'] ?? $student?->user->role ?? 'siswa';
         $class = array_key_exists('class_name', $data) ? ($data['class_name'] ?? '') : ($student?->class_name ?? '');
-        if ($role === 'panitia' && !preg_match('/^(XI|XII)(?:\s|$)/i', trim($class))) {
+        if ($role === 'panitia' && $student?->user->committeeClassLocked() && !preg_match('/^(XI|XII)(?:\s|$)/i', trim($class))) {
             throw ValidationException::withMessages(['class_name' => 'Panitia EC harus merupakan siswa kelas XI atau XII. Contoh: XI PPLG - RPL 1.']);
         }
     }
@@ -69,7 +73,11 @@ class StudentController extends Controller
         $data = $request->validate($this->rules($student));
         $this->validatePanitiaClass($data, $student);
         $service->save($student, $data, $request->file('profile_photo'), function () use ($student, $data) {
-            $student->user()->update(['name' => $data['full_name'], 'username' => $data['student_number'], 'role' => $data['role'] ?? $student->user->role]);
+            $user = User::lockForUpdate()->findOrFail($student->user_id);
+            if (($data['role'] ?? $user->role) === 'siswa' && $user->role === 'panitia') {
+                $user->committeeRoles()->upcomingOrActive()->update(['revoked_at' => now(), 'revoked_by' => auth()->id(), 'revoke_reason' => 'Peran diubah oleh pembina melalui data siswa.']);
+            }
+            $user->update(['name' => $data['full_name'], 'username' => $data['student_number'], 'role' => $data['role'] ?? $user->role]);
         });
         return redirect()->route('students.index')->with('success', 'Anggota diperbarui. Password tetap sama.');
     }
@@ -108,6 +116,7 @@ class StudentController extends Controller
                 || AssessmentAssignment::where('assessor_id', $user->id)->orWhere('created_by', $user->id)->orWhere('reviewed_by', $user->id)->exists()
                 || AssessmentEvent::where('actor_id', $user->id)->exists()
                 || Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
+            $hasHistory = $hasHistory || CommitteeRole::where('user_id', $user->id)->orWhere('appointed_by', $user->id)->orWhere('revoked_by', $user->id)->exists();
             if ($hasHistory) { throw ValidationException::withMessages(['student' => 'Siswa memiliki riwayat keanggotaan, kegiatan, atau penilaian. Ubah status menjadi nonaktif, keluar, atau alumni untuk mempertahankan riwayat.']); }
             abort_if($user->isPembina(), 403);
             $member->delete();

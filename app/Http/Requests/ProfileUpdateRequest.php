@@ -11,7 +11,7 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array {
         if (!$this->user()->isPembina()) {
             $rules = StudentProfileService::rules($this->user()->student?->class_name);
-            if ($this->user()->isPanitia()) { $rules['class_name'] = ['prohibited']; }
+            if ($this->user()->committeeClassLocked()) { $rules['class_name'] = ['prohibited']; }
             return array_merge($rules, [
                 'name' => ['prohibited'], 'username' => ['prohibited'],
                 'full_name' => ['prohibited'], 'student_number' => ['prohibited'],

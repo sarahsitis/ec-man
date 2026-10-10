@@ -10,7 +10,11 @@ class PanitiaRoleTest extends TestCase
 {
     use RefreshDatabase;
     private function account(string $code, string $role): User {
-        return User::create(['name' => 'Pengguna Uji', 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        $user = User::create(['name' => 'Pengguna Uji', 'username' => $code, 'role' => $role, 'password' => 'test-password']);
+        if ($role === 'panitia') {
+            $user->committeeRoles()->create(['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addYear()->toDateString()]);
+        }
+        return $user;
     }
     private function member(User $user): Student {
         return Student::create(['user_id' => $user->id, 'student_number' => $user->username, 'full_name' => $user->name, 'joined_year' => 2026, 'class_name' => 'XI RPL 1']);
@@ -23,11 +27,11 @@ class PanitiaRoleTest extends TestCase
         $user = $this->account('1003', 'siswa');
         $student = $this->member($user);
         $hash = $user->password;
-        $this->actingAs($admin)->put('/students/'.$student->id, array_merge($this->data($student), ['role' => 'panitia']))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->post('/panitia-ec', ['user_id' => $user->id, 'starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addMonth()->toDateString()])->assertSessionHasNoErrors();
         $this->assertTrue($user->fresh()->isPanitia());
         $this->assertSame($hash, $user->fresh()->password);
         $this->assertSame($user->id, $student->fresh()->user_id);
-        $this->put('/students/'.$student->id, array_merge($this->data($student), ['role' => 'siswa']))->assertSessionHasNoErrors();
+        $this->delete('/panitia-ec/'.$user->committeeRoles()->firstOrFail()->id)->assertSessionHasNoErrors();
         $this->assertFalse($user->fresh()->isPanitia());
     }
     public function test_panitia_cannot_access_member_management(): void {
@@ -62,6 +66,7 @@ class PanitiaRoleTest extends TestCase
     }
     public function test_dashboard_displays_panitia_role(): void {
         $user = $this->account('1003', 'panitia');
+        $this->member($user);
         $this->actingAs($user)->get('/dashboard')->assertRedirect(route('panitia.dashboard'));
         $this->get('/panitia/dashboard')->assertOk()->assertInertia(fn ($page) => $page->component('Panitia/Dashboard')->where('auth.user.role', 'panitia'));
     }

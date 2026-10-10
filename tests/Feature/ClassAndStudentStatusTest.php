@@ -77,10 +77,13 @@ class ClassAndStudentStatusTest extends TestCase {
     }
 
     public function test_new_panitia_classes_are_supported_and_grade_x_remains_ineligible(): void {
-        $this->actingAs($this->pembina)->post('/students', array_merge($this->memberData('3001', 'XI TJKT - TK 2'), ['role' => 'panitia']))->assertSessionHasNoErrors();
+        $this->actingAs($this->pembina)->post('/students', $this->memberData('3001', 'XI TJKT - TK 2'))->assertSessionHasNoErrors();
+        $dates = ['starts_on' => now('Asia/Jakarta')->toDateString(), 'ends_on' => now('Asia/Jakarta')->addMonth()->toDateString()];
+        $this->post('/panitia-ec', array_merge($dates, ['user_id' => User::where('username', '3001')->firstOrFail()->id]))->assertSessionHasNoErrors();
         $this->assertDatabaseHas('users', ['username' => '3001', 'role' => 'panitia']);
-        $this->post('/students', array_merge($this->memberData('3002', 'X MPLB 5'), ['role' => 'panitia']))->assertSessionHasErrors('class_name');
-        $this->assertDatabaseMissing('users', ['username' => '3002']);
+        $this->post('/students', $this->memberData('3002', 'X MPLB 5'))->assertSessionHasNoErrors();
+        $this->post('/panitia-ec', array_merge($dates, ['user_id' => User::where('username', '3002')->firstOrFail()->id]))->assertSessionHasErrors('user_id');
+        $this->assertDatabaseHas('users', ['username' => '3002', 'role' => 'siswa']);
     }
 
     public function test_inline_status_and_graduation_preserve_identity_memberships_and_attendance(): void {

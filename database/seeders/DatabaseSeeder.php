@@ -42,8 +42,13 @@ class DatabaseSeeder extends Seeder
         foreach (User::whereIn('role', ['siswa', 'panitia'])->get() as $user) {
             Student::firstOrCreate(['user_id' => $user->id], [
                 'student_number' => $user->username, 'full_name' => $user->name,
-                'joined_year' => date('Y'), 'class_name' => $user->isPanitia() ? 'XI PPLG - RPL 1' : null,
+                'joined_year' => date('Y'), 'class_name' => $user->role === 'panitia' ? 'XI PPLG - RPL 1' : null,
             ]);
+            if ($user->role === 'panitia') {
+                $today = now('Asia/Jakarta');
+                $end = $today->month <= 6 ? $today->copy()->startOfYear()->addMonths(6)->subDay() : $today->copy()->endOfYear();
+                $user->committeeRoles()->create(['starts_on' => $today->toDateString(), 'ends_on' => $end->toDateString(), 'appointed_by' => User::where('role', 'pembina')->firstOrFail()->id]);
+            }
         }
     }
 }

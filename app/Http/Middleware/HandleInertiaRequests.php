@@ -35,7 +35,11 @@ class HandleInertiaRequests extends Middleware
             'flash' => ['success' => fn () => $request->session()->get('success')],
             'classGroups' => fn () => ClassCatalog::groups(),
             'auth' => [
-                'user' => $request->user(),
+                'user' => fn () => $request->user() ? [
+                    ...$request->user()->toArray(),
+                    'is_panitia' => $request->user()->isPanitia(),
+                    'committee_class_locked' => $request->user()->committeeClassLocked(),
+                ] : null,
             ],
         ];
     }
