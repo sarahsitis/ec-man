@@ -9,8 +9,32 @@ export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
+    const page = usePage();
+    const user = page.props.auth.user;
+    const historyTab = new URLSearchParams(page.url.split('?')[1] ?? '').get('status') === 'history';
 
+    const menus = user.is_panitia ? [
+        { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
+        { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
+        { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.index') || route().current('pretests.show') },
+        { label: 'Kegiatan & Presensi', href: route('activities.index'), active: route().current('activities.*') },
+    ] : user.role === 'pembina' ? [
+        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
+        { label: 'Anggota', href: route('students.index'), active: route().current('students.*') },
+        { label: 'Panitia EC', href: route('committee-roles.index'), active: route().current('committee-roles.*') },
+        { label: 'Keanggotaan', href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
+        { label: 'Kegiatan', href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
+        { label: 'Penugasan & Penilaian', href: route('assessments.index'), active: route().current('assessments.*') },
+        { label: 'Hasil Pre-test', href: route('pretests.reports'), active: route().current('pretests.*') },
+    ] : [
+        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.*') },
+        { label: 'Kegiatan Saya', href: route('activities.index'), active: route().current('activities.*') },
+    ];
+    const flash = usePage().props.flash as {success?: string} | undefined;
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -26,29 +50,12 @@ export default function Authenticated({
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                {user.role === 'pembina' ? (
-                                    <>
-                                        <NavLink href={route('students.index')} active={route().current('students.*')}>Anggota</NavLink>
-                                        <NavLink href="#" active={false}>Kegiatan</NavLink>
-                                        <NavLink href="#" active={false}>Penilaian</NavLink>
-                                    </>
-                                ) : (
-                                    <>
-                                        <NavLink href="#" active={false}>Jadwalanku</NavLink>
-                                        <NavLink href="#" active={false}>My Progress</NavLink>
-                                    </>
-                                )}
+                            <div className="hidden space-x-4 xl:-my-px xl:ms-6 xl:flex">
+                                {menus.map(menu => <NavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</NavLink>)}
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden xl:ms-6 xl:flex xl:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -57,7 +64,7 @@ export default function Authenticated({
                                                 type="button"
                                                 className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                             >
-                                                {user.name}
+                                                {user.name}{user.is_panitia && ' · Panitia EC'}
 
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
@@ -93,7 +100,7 @@ export default function Authenticated({
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="-me-2 flex items-center xl:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -139,22 +146,17 @@ export default function Authenticated({
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
+                        ' xl:hidden'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                        {menus.map(menu => <ResponsiveNavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</ResponsiveNavLink>)}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
                         <div className="px-4">
                             <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}
+                                {user.name}{user.is_panitia && ' · Panitia EC'}
                             </div>
                             <div className="text-sm font-medium text-gray-500">
                                 {user.username}
@@ -185,6 +187,7 @@ export default function Authenticated({
                 </header>
             )}
 
+            {flash?.success && <div role="status" className="mx-auto mt-4 max-w-7xl rounded bg-green-100 p-4 text-green-900">{flash.success}</div>}
             <main>{children}</main>
         </div>
     );

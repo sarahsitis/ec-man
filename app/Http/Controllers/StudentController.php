@@ -1,82 +1,128 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
+use App\Models\AssessmentAssignment;
+use App\Models\AssessmentEvent;
+use App\Models\Activity;
+use App\Models\Attendance;
+use App\Models\CommitteeRole;
+use App\Services\StudentProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class StudentController extends Controller
 {
-    public function index()
-    {
-        $students = Student::with(['user', 'memberships.academicYear'])->latest()->get();
+    public function index(Request $request) {
+        $filters = $request->validate(['status' => ['nullable', Rule::in(array_merge(['all'], array_keys(Student::STATUSES)))], 'search' => ['nullable', 'string', 'max:100']]);
+        $status = $filters['status'] ?? 'all';
+        $search = $filters['search'] ?? '';
+        $query = Student::with(['user' => fn ($q) => $q->withExists(['committeeRoles as has_active_committee_term' => fn ($roles) => $roles->active()]), 'memberships.academicYear']);
+        if ($status !== 'all') { $query->where('status', $status); }
+        if ($search !== '') { $query->where(fn ($q) => $q->where('full_name', 'like', '%'.$search.'%')->orWhere('student_number', 'like', '%'.$search.'%')->orWhere('class_name', 'like', '%'.$search.'%')); }
         return Inertia::render('Students/Index', [
-            'students' => $students
+            'students' => $query->latest()->get()->each(function ($student) {
+                $student->user->setAttribute('is_panitia', $student->user->role === 'panitia' && $student->user->has_active_committee_term
+                    && $student->status === 'active' && (bool) preg_match('/^(XI|XII)(?:\s|$)/i', trim($student->class_name ?? '')));
+            }), 'statuses' => Student::STATUSES,
+            'filters' => ['status' => $status, 'search' => $search],
         ]);
     }
+    public function create() { return Inertia::render('Students/Create'); }
 
-    public function create()
-    {
-        return Inertia::render('Students/Create');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'student_number' => ['required', 'string', 'max:255', 'unique:students,student_number', 'unique:users,username'],
-            'full_name' => 'required|string|max:255',
-            'joined_year' => 'required|integer|min:2000|max:'.date('Y'),
+    private function rules(?Student $student = null): array {
+        return array_merge(StudentProfileService::rules($student?->class_name), [
+            'student_number' => ['required', 'string', 'max:255',
+                Rule::unique('students', 'student_number')->ignore($student?->id),
+                Rule::unique('users', 'username')->ignore($student?->user_id)],
+            'role' => ['sometimes', 'required', Rule::in($student?->user->role === 'panitia' ? ['siswa', 'panitia'] : ['siswa'])],
+            'status' => ['sometimes', 'required', Rule::in(array_keys(Student::STATUSES))],
+            'full_name' => ['required', 'string', 'max:255'],
+            'joined_year' => ['required', 'integer', 'min:2000', 'max:'.date('Y')],
         ]);
-
-        DB::transaction(function () use ($validated) {
+    }
+    private function validatePanitiaClass(array $data, ?Student $student = null): void {
+        $role = $data['role'] ?? $student?->user->role ?? 'siswa';
+        $class = array_key_exists('class_name', $data) ? ($data['class_name'] ?? '') : ($student?->class_name ?? '');
+        if ($role === 'panitia' && $student?->user->committeeClassLocked() && !preg_match('/^(XI|XII)(?:\s|$)/i', trim($class))) {
+            throw ValidationException::withMessages(['class_name' => 'Panitia EC harus merupakan siswa kelas XI atau XII. Contoh: XI PPLG - RPL 1.']);
+        }
+    }
+    public function store(Request $request, StudentProfileService $service) {
+        $data = $request->validate($this->rules());
+        $this->validatePanitiaClass($data);
+        $service->save(new Student(), $data, $request->file('profile_photo'), function (Student $student) use ($data) {
             $user = User::create([
-                'name' => $validated['full_name'],
-                'username' => $validated['student_number'],
-                'role' => 'siswa',
-                'password' => Hash::make($validated['student_number']), // default pass
+                'name' => $data['full_name'], 'username' => $data['student_number'],
+                'role' => $data['role'] ?? 'siswa', 'password' => Hash::make($data['student_number']),
             ]);
-
-            Student::create([
-                'user_id' => $user->id,
-                'student_number' => $validated['student_number'],
-                'full_name' => $validated['full_name'],
-                'joined_year' => $validated['joined_year'],
-            ]);
+            $student->user_id = $user->id;
         });
-
-        return redirect()->route('students.index')->with('success', 'Anggota Siswa ditambahkan.');
+        return redirect()->route('students.index')->with('success', 'Anggota ditambahkan.');
     }
-
-    public function edit(Student $student)
-    {
-        return Inertia::render('Students/Edit', ['student' => $student]);
+    public function edit(Student $student) {
+        return Inertia::render('Students/Edit', ['student' => $student->load('user')]);
     }
-
-    public function update(Request $request, Student $student)
-    {
-        $validated = $request->validate([
-            'student_number' => [
-                'required', 'string', 'max:255',
-                Rule::unique('students', 'student_number')->ignore($student->id),
-                Rule::unique('users', 'username')->ignore($student->user_id),
-            ],
-            'full_name' => 'required|string|max:255',
-            'joined_year' => 'required|integer|min:2000|max:'.date('Y'),
+    public function update(Request $request, Student $student, StudentProfileService $service) {
+        $data = $request->validate($this->rules($student));
+        $this->validatePanitiaClass($data, $student);
+        $service->save($student, $data, $request->file('profile_photo'), function () use ($student, $data) {
+            $user = User::lockForUpdate()->findOrFail($student->user_id);
+            if (($data['role'] ?? $user->role) === 'siswa' && $user->role === 'panitia') {
+                $user->committeeRoles()->upcomingOrActive()->update(['revoked_at' => now(), 'revoked_by' => auth()->id(), 'revoke_reason' => 'Peran diubah oleh pembina melalui data siswa.']);
+            }
+            $user->update(['name' => $data['full_name'], 'username' => $data['student_number'], 'role' => $data['role'] ?? $user->role]);
+        });
+        return redirect()->route('students.index')->with('success', 'Anggota diperbarui. Password tetap sama.');
+    }
+    public function photo(Request $request, Student $student) {
+        abort_unless($request->user()->isPembina() || $request->user()->id === $student->user_id, 403);
+        abort_unless($student->profile_photo_path && Storage::disk('local')->exists($student->profile_photo_path), 404);
+        return Storage::disk('local')->response($student->profile_photo_path, null, [
+            'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
 
-        DB::transaction(function () use ($student, $validated) {
-            $student->update($validated);
-            $student->user()->update([
-                'name' => $validated['full_name'],
-                'username' => $validated['student_number'],
-            ]);
+    public function bulkStatus(Request $request) {
+        $data = $request->validate([
+            'student_ids' => ['required', 'array', 'min:1'],
+            'student_ids.*' => ['required', 'integer', 'distinct', 'exists:students,id'],
+            'status' => ['required', Rule::in(array_keys(Student::STATUSES))],
+        ]);
+        Student::whereIn('id', $data['student_ids'])->update(['status' => $data['status']]);
+        return back()->with('success', 'Status '.count($data['student_ids']).' siswa diperbarui.');
+    }
+
+    public function updateStatus(Request $request, Student $student) {
+        $data = $request->validate(['status' => ['required', Rule::in(array_keys(Student::STATUSES))]]);
+        $student->update($data);
+        $message = $data['status'] === 'alumni' ? 'Siswa ditandai lulus dan menjadi alumni.' : 'Status siswa diubah menjadi '.Student::STATUSES[$data['status']].'.';
+        return back()->with('success', $message);
+    }
+
+    public function destroy(Student $student) {
+        $photo = $student->profile_photo_path;
+        DB::transaction(function () use ($student) {
+            $user = User::lockForUpdate()->findOrFail($student->user_id);
+            $member = Student::lockForUpdate()->findOrFail($student->id);
+            $hasHistory = $member->memberships()->exists() || $member->attendances()->exists() || $member->preTestResult()->exists()
+                || AssessmentAssignment::where('student_id', $member->id)->exists()
+                || AssessmentAssignment::where('assessor_id', $user->id)->orWhere('created_by', $user->id)->orWhere('reviewed_by', $user->id)->exists()
+                || AssessmentEvent::where('actor_id', $user->id)->exists()
+                || Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
+            $hasHistory = $hasHistory || CommitteeRole::where('user_id', $user->id)->orWhere('appointed_by', $user->id)->orWhere('revoked_by', $user->id)->exists();
+            if ($hasHistory) { throw ValidationException::withMessages(['student' => 'Siswa memiliki riwayat keanggotaan, kegiatan, atau penilaian. Ubah status menjadi nonaktif, keluar, atau alumni untuk mempertahankan riwayat.']); }
+            abort_if($user->isPembina(), 403);
+            $member->delete();
+            $user->delete();
         });
-
-        return redirect()->route('students.index')->with('success', 'Data anggota diperbarui. Password tetap sama.');
+        if ($photo) { Storage::disk('local')->delete($photo); }
+        return redirect()->route('students.index')->with('success', 'Siswa dan akun terkait dihapus.');
     }
 }

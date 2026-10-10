@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Member } from '@/Pages/Students/MemberForm';
 import { PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
@@ -7,7 +8,8 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 
 export default function Edit({
     status,
-}: PageProps<{ status?: string }>) {
+    student,
+}: PageProps<{ status?: string; student?: Member | null }>) {
     return (
         <AuthenticatedLayout
             header={
@@ -23,6 +25,7 @@ export default function Edit({
                     <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8 dark:bg-gray-800">
                         <UpdateProfileInformationForm
                             status={status}
+                            student={student}
                             className="max-w-xl"
                         />
                     </div>

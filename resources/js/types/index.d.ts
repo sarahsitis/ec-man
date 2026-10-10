@@ -2,7 +2,9 @@ export interface User {
     id: number;
     name: string;
     username: string;
-    role: string;
+    role: 'pembina' | 'siswa' | 'panitia';
+    is_panitia: boolean;
+    committee_class_locked: boolean;
 }
 
 export type PageProps<
@@ -11,4 +13,5 @@ export type PageProps<
     auth: {
         user: User;
     };
+    classGroups: Record<string, string[]>;
 };
