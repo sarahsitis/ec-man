@@ -18,7 +18,7 @@ export default function Authenticated({
         { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
         { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
         { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
-        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
         { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.index') || route().current('pretests.show') },
         { label: 'Kegiatan & Presensi', href: route('activities.index'), active: route().current('activities.*') },
     ] : user.role === 'pembina' ? [
@@ -30,9 +30,10 @@ export default function Authenticated({
         { label: 'Penugasan', href: route('assessments.index'), active: route().current('assessments.index') || (route().current('assessments.show') && !queueDetail) },
         { label: 'Pemeriksaan', href: route('assessments.queue'), active: route().current('assessments.queue') || (route().current('assessments.show') && queueDetail) },
         { label: 'Hasil Pre-test', href: route('pretests.reports'), active: route().current('pretests.*') },
+        { label: 'Laporan Minat', href: route('reports.interests'), active: route().current('reports.interests') },
     ] : [
         { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
-        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') },
+        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
         { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.*') },
         { label: 'Kegiatan Saya', href: route('activities.index'), active: route().current('activities.*') },
     ];

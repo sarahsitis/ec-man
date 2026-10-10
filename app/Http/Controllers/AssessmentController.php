@@ -2,9 +2,9 @@
 namespace App\Http\Controllers;
 use App\Models\AssessmentAssignment;
 use App\Models\Student;
-use App\Models\Score;
 use App\Models\User;
 use App\Services\AssessmentService;
+use App\Services\StudentReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -133,16 +133,13 @@ class AssessmentController extends Controller {
         });
         return back()->with('success', 'Batas waktu diperbarui.');
     }
-    public function progress(Request $request) {
+    public function progress(Request $request, StudentReportService $reports) {
         abort_unless(!$request->user()->isPembina(), 403);
-        // Publish only official score snapshots, without proposals or internal observation/audit data.
-        $grades = Score::whereHas('student', fn ($q) => $q->where('user_id', $request->user()->id))
-            ->with(['assessment:id,title,aspect', 'approver:id,name'])->orderByDesc('approved_at')->orderByDesc('id')->paginate(20)
-            ->through(fn ($score) => [
-                'id' => $score->id, 'title' => $score->assessment->title, 'aspect' => $score->assessment->aspect,
-                'final_score' => $score->value, 'feedback' => $score->feedback, 'review_note' => $score->review_note,
-                'reviewed_at' => $score->approved_at?->toISOString(), 'reviewer' => $score->approver?->only(['id', 'name']),
-            ]);
-        return Inertia::render('Progress/Index', ['grades' => $grades]);
+        $student = $request->user()->student;
+        $filters = ReportController::dates($request);
+        return Inertia::render('Progress/Index', [
+            'grades' => $reports->grades($student, $filters), 'report' => $reports->summary($student, $filters),
+            'student' => $student?->only(['id', 'full_name', 'student_number', 'class_name']), 'filters' => $filters,
+        ]);
     }
 }
