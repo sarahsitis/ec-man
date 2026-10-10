@@ -26,7 +26,7 @@ function Recommendation({item, expired}:{item:Assignment;expired:boolean}) {
 function Review({item}:{item:Assignment}) {
     const form=useForm({decision:'approve',final_score:String(item.proposed_score ?? ''),review_note:''});
     const submit:FormEventHandler=e=>{e.preventDefault();form.post(route('assessments.review',item.id));};
-    return <div className={panel}><h3 className="text-lg font-semibold">Keputusan pembina</h3><form onSubmit={submit} className="mt-4 space-y-4">
+    return <div className={panel}><h3 className="text-lg font-semibold">Keputusan pembina</h3><p className="mt-2 text-sm text-gray-500">Sahkan rekomendasi untuk menerbitkan nilai resmi. Revisi dan penolakan membutuhkan catatan untuk panitia.</p><form onSubmit={submit} className="mt-4 space-y-4">
         <div><InputLabel value="Keputusan"/><select className={field} value={form.data.decision} onChange={e=>form.setData('decision',e.target.value)}><option value="approve">Sahkan nilai</option><option value="revise">Kembalikan untuk revisi</option><option value="reject">Tolak rekomendasi</option></select><InputError message={form.errors.decision}/></div>
         {form.data.decision==='approve' && <div><InputLabel value="Skor resmi (1–4)"/><select className={field} required value={form.data.final_score} onChange={e=>form.setData('final_score',e.target.value)}><option value="">Pilih skor</option>{[1,2,3,4].map(n=><option key={n} value={n}>{n}</option>)}</select><InputError message={form.errors.final_score}/></div>}
         <div><InputLabel value="Catatan pembina"/><textarea className={field} rows={3} value={form.data.review_note} maxLength={2000} onChange={e=>form.setData('review_note',e.target.value)}/><InputError message={form.errors.review_note}/><p className="text-sm text-gray-500">Wajib jika mengubah skor, meminta revisi, atau menolak. Catatan pengesahan dapat dilihat siswa.</p></div>
@@ -43,19 +43,20 @@ function Deadline({item}:{item:Assignment}) {
         </form>
     </div>;
 }
-export default function Show({assignment:item,expired}:{assignment:Assignment;expired:boolean}) {
+export default function Show({assignment:item,expired,nextPendingId}:{assignment:Assignment;expired:boolean;nextPendingId:number|null}) {
     const user=usePage().props.auth.user;const pembina=user.role==='pembina';const editable=['assigned','draft','revision'].includes(item.status);
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{item.title}</h2>}>
         <Head title="Detail Penilaian"/><div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-            <Link href={pembina?route('assessments.index'):route('panitia.assignments')} className="text-indigo-600">Kembali ke daftar</Link>
+            <div className="flex flex-wrap gap-4"><Link href={pembina?route('assessments.queue'):route('panitia.assignments')} className="text-indigo-600">{pembina ? 'Kembali ke antrean pemeriksaan' : 'Kembali ke penugasan saya'}</Link>{pembina && <Link href={route('assessments.index')} className="text-indigo-600">Semua penugasan</Link>}{pembina && nextPendingId && item.status !== 'submitted' && <Link href={route('assessments.show', {assignment:nextPendingId,from:'queue'})} className="font-medium text-indigo-600">Periksa rekomendasi berikutnya</Link>}</div>
             <div className={panel}><h3 className="text-lg font-semibold">{item.student.full_name}</h3><p>{item.student.student_number} · {item.student.class_name || 'Kelas belum diisi'}</p><p className="mt-2 capitalize">Aspek: {item.aspect}</p><p>Panitia: {item.assessor?.name}</p><p>Status: {statuses[item.status]}</p><p>Batas waktu: {item.due_date || 'Tanpa batas'} (WIB)</p></div>
+            {item.assessment?.instructions && <div className={panel}><h3 className="font-semibold">Instruksi pembina</h3><p className="mt-2 whitespace-pre-wrap">{item.assessment.instructions}</p></div>}
             <div className={panel}><h3 className="font-semibold">Kemampuan awal dan minat siswa</h3><p className="my-2 text-sm text-gray-500">Lihat pre-test sebagai acuan untuk pengamatan dan saran latihan.</p><Link className="text-indigo-600" href={route('pretests.show', item.student.id)}>Lihat hasil pre-test siswa</Link></div>
             <div className={panel}><h3 className="text-lg font-semibold">Rubrik skala internal 1–4</h3><p className="mb-3 text-sm text-gray-500">{item.rubric.version}</p>{Object.entries(item.rubric.levels).map(([score,description])=><p key={score} className="mb-2"><strong>{score}:</strong> {description}</p>)}</div>
             {item.review_note && <div className={panel}><h3 className="font-semibold">Catatan pembina</h3><p className="mt-2 whitespace-pre-wrap">{item.review_note}</p></div>}
             {!pembina && editable ? <Recommendation key={item.status} item={item} expired={expired}/> : <div className={panel}><h3 className="font-semibold">Rekomendasi panitia</h3><p className="mt-2">Skor usulan: {item.proposed_score ?? 'Belum dinilai'}</p><p className="mt-3 whitespace-pre-wrap">Pengamatan: {item.observations || '—'}</p><p className="mt-3 whitespace-pre-wrap">Umpan balik: {item.feedback || '—'}</p></div>}
             {pembina && !['approved','rejected'].includes(item.status) && <Deadline item={item}/>}
             {pembina && item.status==='submitted' && <Review item={item}/>}
-            {item.status==='approved' && <div className={panel}><h3 className="font-semibold">Nilai resmi: {item.final_score}/4</h3><p>Disahkan oleh {item.reviewer?.name}</p></div>}
+            {item.official_score && <div className={panel}><h3 className="font-semibold">Nilai resmi: {item.official_score.value}/4</h3><p>Disahkan oleh {item.official_score.approver?.name || item.reviewer?.name}</p><p className="mt-2 text-sm text-gray-500">Nilai telah diterbitkan ke halaman perkembangan siswa.</p></div>}
             <div className={panel}><h3 className="mb-3 font-semibold">Riwayat penilaian</h3>{item.events?.map(e=><p key={e.id} className="mb-2 text-sm">{new Date(e.created_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})} WIB — {statuses[e.action] || e.action}</p>)}</div>
         </div>
     </AuthenticatedLayout>;

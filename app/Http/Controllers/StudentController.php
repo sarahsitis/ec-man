@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\AssessmentAssignment;
+use App\Models\Assessment;
+use App\Models\Score;
 use App\Models\AssessmentEvent;
 use App\Models\Activity;
 use App\Models\Attendance;
@@ -117,6 +119,7 @@ class StudentController extends Controller
                 || AssessmentEvent::where('actor_id', $user->id)->exists()
                 || Activity::where('created_by', $user->id)->exists() || Attendance::where('recorded_by', $user->id)->exists();
             $hasHistory = $hasHistory || CommitteeRole::where('user_id', $user->id)->orWhere('appointed_by', $user->id)->orWhere('revoked_by', $user->id)->exists();
+            $hasHistory = $hasHistory || $member->scores()->exists() || Assessment::where('created_by', $user->id)->exists() || Score::where('approved_by', $user->id)->exists();
             if ($hasHistory) { throw ValidationException::withMessages(['student' => 'Siswa memiliki riwayat keanggotaan, kegiatan, atau penilaian. Ubah status menjadi nonaktif, keluar, atau alumni untuk mempertahankan riwayat.']); }
             abort_if($user->isPembina(), 403);
             $member->delete();

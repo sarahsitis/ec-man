@@ -7,6 +7,8 @@ class AssessmentAssignment extends Model {
         return ['rubric' => 'array', 'due_date' => 'date:Y-m-d', 'proposed_score' => 'integer', 'final_score' => 'integer', 'submitted_at' => 'datetime', 'reviewed_at' => 'datetime'];
     }
     public function student() { return $this->belongsTo(Student::class); }
+    public function assessment() { return $this->belongsTo(Assessment::class); }
+    public function officialScore() { return $this->hasOne(Score::class); }
     public function assessor() { return $this->belongsTo(User::class, 'assessor_id'); }
     public function reviewer() { return $this->belongsTo(User::class, 'reviewed_by'); }
     public function events() { return $this->hasMany(AssessmentEvent::class); }

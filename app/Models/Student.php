@@ -47,6 +47,11 @@ class Student extends Model
         return $this->hasMany(StudentInterest::class);
     }
 
+    public function scores(): HasMany
+    {
+        return $this->hasMany(Score::class);
+    }
+
     public function preTestResult(): HasOne
     {
         return $this->hasOne(PreTestResult::class);

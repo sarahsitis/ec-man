@@ -1,6 +1,9 @@
 import { Link } from '@inertiajs/react';
 export interface Assignment {
-    id: number; title: string; aspect: string; status: string; due_date: string | null;
+    id: number; assessment_id: number; title: string; aspect: string; status: string; due_date: string | null;
+    assessment?: { instructions: string | null };
+    official_score?: { id: number; value: number; approved_at?: string | null; approver?: { name: string } | null } | null;
+    submitted_at: string | null;
     student: { id: number; user_id?: number; full_name: string; student_number: string; class_name?: string };
     assessor?: { id: number; name: string }; reviewer?: { name: string } | null;
     proposed_score: number | null; observations: string | null; feedback: string | null;
