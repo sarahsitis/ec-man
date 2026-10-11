@@ -55,6 +55,7 @@ export default function ActivityAttachments({ activityId, attachments, options, 
     return <section className={panel} aria-labelledby="activity-files-heading">
         <h3 id="activity-files-heading" className="text-lg font-semibold">{t('Materi & Dokumentasi Kegiatan')}</h3>
         <p className="mt-2 text-sm leading-6 text-gray-500">{t('Materi pembelajaran dan dokumentasi tersimpan pada kegiatan ini. Peserta yang memiliki akses ke kegiatan dapat melihat dan mengunduh berkas.')}</p>
+        {!canUpload && <p className="mt-4 rounded-lg border border-purple-100 bg-purple-50 p-3 text-sm leading-6 text-purple-900">{t('Materi dan dokumentasi hanya dapat diunggah oleh pembina atau panitia EC aktif. Anda dapat melihat dan mengunduh berkas yang tersedia.')}</p>}
         {canUpload && <form onSubmit={submit} className="mt-5 rounded-xl border border-gray-200 p-4">
             <fieldset disabled={upload.processing}>
                 <legend className="font-semibold">{t('Unggah berkas kegiatan')}</legend>

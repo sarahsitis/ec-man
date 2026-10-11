@@ -88,8 +88,9 @@ class ActivityAttachmentsTest extends TestCase
             $this->assertSame('Panduan latihan', $file->description);
             $this->assertNotSame($file->original_name, basename($file->path));
         }
-        $this->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->component('Activities/Show')->has('attachments', 2)->missing('attachments.0.path')->where('attachments.0.can_delete', true)->where('attachmentOptions.maxFileMb', 20)->where('attachmentOptions.maxBatchMb', 30));
+        $this->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->component('Activities/Show')->has('attachments', 2)->missing('attachments.0.path')->where('canUploadAttachments', true)->where('attachments.0.can_delete', true)->where('attachmentOptions.maxFileMb', 20)->where('attachmentOptions.maxBatchMb', 30));
         $this->upload($this->pembina, 'documentation');
+        $this->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->where('canUploadAttachments', true));
     }
 
     public function test_students_can_download_only_accessible_activity_files_and_preview_photos(): void
@@ -99,7 +100,7 @@ class ActivityAttachmentsTest extends TestCase
         $this->actingAs($this->member->user)->get($this->url($text, 'unduh'))->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff')->assertDownload('materi.txt')->assertStreamedContent('English Club speaking practice.');
         $this->get($this->url($photo, 'pratinjau'))->assertOk()->assertHeader('Content-Type', 'image/jpeg')->assertHeader('Cache-Control', 'no-store, private');
         $this->get($this->url($text, 'pratinjau'))->assertNotFound();
-        $this->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->has('attachments', 2)->where('attachments.0.can_delete', false)->missing('attachments.0.path'));
+        $this->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->has('attachments', 2)->where('canUploadAttachments', false)->where('attachments.0.can_delete', false)->missing('attachments.0.path'));
         $outsider = $this->student($this->account('outsider', 'siswa'));
         foreach (['unduh', 'pratinjau'] as $action) {
             $this->actingAs($outsider->user)->get($this->url($photo, $action))->assertForbidden();
@@ -127,8 +128,12 @@ class ActivityAttachmentsTest extends TestCase
     {
         $file = $this->upload($this->panitia);
         $this->panitia->committeeRoles()->update(['ends_on' => '2026-10-10']);
+        Membership::create(['student_id' => $this->panitia->student->id, 'academic_year_id' => $this->year->id, 'status' => 'active']);
         foreach ([$this->panitia, $this->member->user] as $user) {
-            $this->actingAs($user)->post($this->url(), ['kind' => 'material', 'files' => [UploadedFile::fake()->image('foto.jpg')]])->assertForbidden();
+            $this->actingAs($user)->get('/kegiatan/'.$this->activity->id)->assertInertia(fn ($page) => $page->where('canUploadAttachments', false));
+            foreach (['material', 'documentation'] as $kind) {
+                $this->post($this->url(), ['kind' => $kind, 'canUploadAttachments' => true, 'is_panitia' => true, 'files' => [UploadedFile::fake()->image('foto.jpg')]])->assertForbidden();
+            }
             $this->delete($this->url($file))->assertForbidden();
         }
         $this->assertDatabaseCount('activity_attachments', 1);

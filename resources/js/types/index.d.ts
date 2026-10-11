@@ -15,4 +15,5 @@ export type PageProps<
         user: User;
     };
     classGroups: Record<string, string[]>;
+    notificationSummary: { unreadCount: number };
 };

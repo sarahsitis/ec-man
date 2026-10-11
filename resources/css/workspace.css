@@ -39,11 +39,7 @@
 .ec-workspace .ec-role-card { margin: 26px 5px 0; padding: 15px; border: 1px solid #eee8fb; border-radius: 12px; background: #f7f6fc; }
 .ec-workspace .ec-role-card strong { display: block; font-size: 13px; margin: 8px 0 5px; }
 .ec-workspace .ec-role-card > p:last-child { color: var(--ec-muted); font-size: 11px; }
-.ec-workspace .ec-sidebar-bottom { margin-top: auto; padding-top: 24px; }
-.ec-workspace .ec-user { border-top: 1px solid var(--ec-line); padding: 18px 8px 8px; display: flex; gap: 10px; align-items: center; }
-.ec-workspace .ec-user > div, .ec-workspace .ec-topbar-user > div { min-width: 0; }
-.ec-workspace .ec-user strong { display: block; font-size: 12px; overflow-wrap: anywhere; }
-.ec-workspace .ec-user small { font-size: 10px; color: var(--ec-muted); overflow-wrap: anywhere; }
+.ec-workspace .ec-sidebar-bottom { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--ec-line); }
 .ec-workspace .ec-avatar { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: #eee8fb; color: var(--ec-deep); font-weight: 650; font-size: 11px; flex-shrink: 0; }
 .ec-workspace .ec-account-link { display: flex; width: 100%; gap: 10px; align-items: center; padding: 10px; min-height: 44px; text-align: left; color: #66708a; font-size: 12px; border-radius: 8px; }
 .ec-workspace .ec-account-link[aria-current="page"] { font-weight: 650; background: #f7f6fc; color: var(--ec-primary); }
@@ -58,9 +54,22 @@
 .ec-workspace .ec-breadcrumb [aria-current="page"] { font-weight: 500; color: var(--ec-tertiary); }
 .ec-workspace .ec-breadcrumb-separator { flex-shrink: 0; }
 .ec-workspace .ec-topbar-actions { flex-shrink: 0; }
-.ec-workspace .ec-topbar-user { display: flex; align-items: center; gap: 10px; max-width: 250px; }
-.ec-workspace .ec-topbar-user strong { display: block; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.ec-workspace .ec-topbar-user small { color: var(--ec-muted); font-size: 10px; }
+.ec-workspace .ec-account-menu { position: relative; flex-shrink: 0; }
+.ec-workspace .ec-account-trigger { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 4px 6px; border: 1px solid var(--ec-line); border-radius: 12px; background: white; color: var(--ec-primary); }
+.ec-workspace .ec-account-trigger:hover, .ec-workspace .ec-account-trigger[aria-expanded="true"] { background: var(--ec-primary-soft); border-color: var(--ec-primary); }
+.ec-workspace .ec-account-trigger .ec-avatar { width: 32px; height: 32px; border-radius: 9px; }
+.ec-workspace .ec-account-trigger .ec-account-chevron { width: 14px; height: 14px; }
+.ec-workspace .ec-account-dropdown { position: absolute; z-index: 60; top: calc(100% + 8px); right: 0; width: min(290px, calc(100vw - 24px)); padding: 6px; border: 1px solid var(--ec-line); border-radius: 16px; background: white; box-shadow: 0 14px 40px #24133f20; }
+.ec-workspace .ec-account-info { padding: 14px 12px; border-bottom: 1px solid var(--ec-line); overflow-wrap: anywhere; }
+.ec-workspace .ec-account-info strong { display: block; font-size: 14px; font-weight: 650; }
+.ec-workspace .ec-account-info dl { margin-top: 8px; font-size: 12px; }
+.ec-workspace .ec-account-info dt { font-size: 10px; color: var(--ec-muted); }
+.ec-workspace .ec-account-info dd { margin-top: 2px; }
+.ec-workspace .ec-account-role { display: inline-block; margin-top: 10px; padding: 3px 8px; border-radius: 99px; background: var(--ec-primary-soft); color: var(--ec-primary-strong); font-size: 10px; }
+.ec-workspace .ec-account-options { padding-top: 6px; }
+.ec-workspace .ec-account-option { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px; text-align: left; font-size: 12px; }
+.ec-workspace .ec-account-option:hover, .ec-workspace .ec-account-option[data-focus], .ec-workspace .ec-account-option[aria-current="page"] { background: var(--ec-primary-soft); color: var(--ec-primary-strong); }
+.ec-workspace .ec-account-logout { color: var(--ec-secondary-strong); }
 .ec-workspace .ec-main { max-width: 1440px; margin: auto; padding: 34px 42px 20px; }
 .ec-workspace .ec-main:focus { outline: none; }
 .ec-workspace .ec-legacy-heading { max-width: 1440px; margin: auto; padding: 28px 42px 0; }
@@ -224,15 +233,15 @@
     .ec-workspace .ec-status-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 650px) {
-    .ec-workspace .ec-topbar { min-height: 70px; padding: 10px 17px; gap: 10px; flex-wrap: wrap; }
+    .ec-workspace .ec-topbar { min-height: 70px; padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
     .ec-workspace .ec-topbar-start { display: contents; }
-    .ec-workspace .ec-topbar-actions { margin-left: auto; }
+    .ec-workspace .ec-topbar-actions { margin-left: auto; gap: 6px; }
     .ec-workspace .ec-breadcrumb { font-size: 11px; flex-basis: 100%; order: 2; }
     .ec-workspace .ec-breadcrumb li:last-child { flex-shrink: 0; max-width: 65%; }
     .ec-workspace .ec-breadcrumb li:first-child:not(:last-child) { display: none; }
     .ec-workspace .ec-breadcrumb li:nth-child(2) .ec-breadcrumb-separator { display: none; }
-    .ec-workspace .ec-topbar-user { max-width: 130px; }
-    .ec-workspace .ec-topbar-user .ec-avatar { display: none; }
+    .ec-workspace .ec-account-trigger { width: 44px; padding: 4px; }
+    .ec-workspace .ec-account-trigger .ec-account-chevron { display: none; }
     .ec-workspace .ec-main { padding: 25px 17px 15px; }
     .ec-workspace .ec-footer { font-size: 9px; padding: 8px 17px 20px; align-items: flex-start; }
     .ec-workspace .ec-footer > span:last-child { max-width: 165px; }

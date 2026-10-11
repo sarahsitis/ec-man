@@ -11,10 +11,11 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Show({ activity, students, attendances, myAttendance, attendanceStatuses, activityStatuses, attachments, attachmentOptions }: {
+export default function Show({ activity, students, attendances, myAttendance, attendanceStatuses, activityStatuses, attachments, attachmentOptions, canUploadAttachments = false }: {
     activity: Activity; students: ManagedStudent[]; attendances: Attendance[]; myAttendance: Attendance | null;
     attendanceStatuses: Record<string, string>; activityStatuses: Record<string, string>;
     attachments: ActivityAttachment[]; attachmentOptions: AttachmentOptions;
+    canUploadAttachments: boolean;
 }) {
     const { t, locale, dateLocale } = useTranslation();
     const page = usePage(); const user = page.props.auth.user;
@@ -47,7 +48,7 @@ export default function Show({ activity, students, attendances, myAttendance, at
                 {pembina && <div className="mt-5 flex gap-4"><Link className="ec-action ec-action-edit" href={route('activities.edit',activity.id)}>{t("Edit kegiatan")}</Link><button className="ec-action ec-action-danger" onClick={()=>{if(window.confirm(t("Hapus kegiatan :value1? Kegiatan yang memiliki riwayat presensi perlu dibatalkan.", { value1: activity.title }))) router.delete(route('activities.destroy',activity.id));}}>{t("Hapus kegiatan")}</button></div>}
                 <InputError message={page.props.errors.activity} />
             </div>
-            <ActivityAttachments activityId={activity.id} attachments={attachments} options={attachmentOptions} canUpload={staff} />
+            <ActivityAttachments activityId={activity.id} attachments={attachments} options={attachmentOptions} canUpload={canUploadAttachments} />
             {!staff ? <div className={panel}><h3 className="font-semibold">{t("Presensi saya")}</h3><div className="mt-3"><StatusBadge status={myAttendance?.status || 'belum_diisi'} labels={attendanceStatuses} /></div></div> : <div className={panel}>
                 <h3 className="text-lg font-semibold">{t("Presensi peserta")}</h3><p className="mt-2 text-sm text-gray-500">{t("Daftar berasal dari anggota aktif semester kegiatan. Siswa yang sudah memiliki catatan tetap ditampilkan untuk koreksi riwayat. Siswa yang belum dicatat tidak otomatis dianggap alpa.")}</p>
                 <div className="my-4 flex flex-wrap gap-3">{counts.map(c=><span key={c.status} className="rounded bg-gray-100 px-3 py-2 text-sm text-gray-800">{attendanceStatuses[c.status]}: {c.total}</span>)}</div>

@@ -1,9 +1,11 @@
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import NotificationBell from '@/Components/NotificationBell';
+import UserAccountMenu from '@/Components/UserAccountMenu';
 import Breadcrumbs, { BreadcrumbItem } from '@/Components/Breadcrumbs';
 import SidebarMenu, { SidebarMenuItem } from '@/Components/SidebarMenu';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Avatar, Icon } from '@/Components/WorkspaceUi';
+import { Icon } from '@/Components/WorkspaceUi';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 
@@ -25,7 +27,10 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
         { label: t("Riwayat Rekomendasi"), icon: 'clipboard', href: route('panitia.assignments', { status: 'history' }), active: (route().current('panitia.assignments') && history) || historyDetail },
         { label: t("Perkembangan Saya"), icon: 'check', href: route('progress.index'), active: route().current('progress.index') },
         { label: t("Pre-test Saya"), icon: 'book', href: route('pretests.index'), active: route().current('pretests.*') },
-        { label: t("Kegiatan & Presensi"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') },
+        { label: t("Kegiatan & Presensi"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*'), children: [
+            { label: t("Daftar kegiatan"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') && !route().current('activities.history') },
+            { label: t("Histori Kegiatan"), icon: 'clipboard', href: route('activities.history'), active: route().current('activities.history') },
+        ] },
     ] : user.role === 'pembina' ? [
         { label: t("Dashboard"), icon: 'grid', href: dashboard, active: route().current('dashboard') },
         { label: t("Anggota"), icon: 'people', href: route('students.index'), active: route().current('students.*') || route().current('reports.student') },
@@ -35,7 +40,8 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
             { label: t("Tahun ajaran"), icon: 'calendar', href: route('academic-years.index'), active: route().current('academic-years.*') },
         ] },
         { label: t("Kegiatan"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*'), children: [
-            { label: t("Daftar kegiatan"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') },
+            { label: t("Daftar kegiatan"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') && !route().current('activities.history') },
+            { label: t("Histori Kegiatan"), icon: 'clipboard', href: route('activities.history'), active: route().current('activities.history') },
             { label: t("Skema kegiatan"), icon: 'book', href: route('activity-schemes.index'), active: route().current('activity-schemes.*') },
         ] },
         { label: t("Penugasan"), icon: 'clipboard', href: route('assessments.index'), active: route().current('assessments.index') || (!!detail && query.get('from') !== 'queue') },
@@ -47,7 +53,8 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
         { label: t("Dashboard"), icon: 'grid', href: dashboard, active: route().current('dashboard') },
         { label: t("Perkembangan Saya"), icon: 'check', href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
         { label: t("Pre-test Saya"), icon: 'book', href: route('pretests.index'), active: route().current('pretests.*') },
-        { label: t("Kegiatan Saya"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') },
+        { label: t("Kegiatan Saya"), icon: 'calendar', href: route('activities.index'), active: route().current('activities.*') && !route().current('activities.history') },
+        { label: t("Histori Kegiatan"), icon: 'clipboard', href: route('activities.history'), active: route().current('activities.history') },
     ];
     const activeMenu = menus.flatMap(menu => [...(menu.children?.filter(child => child.href !== menu.href) ?? []), menu]).find(menu => menu.active);
     const breadcrumbs: BreadcrumbItem[] = [{ label: t('Dashboard'), href: dashboard }];
@@ -56,7 +63,7 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
     if (!route().current('dashboard') && !route().current('panitia.dashboard')) {
         if (route().current('academic-years.*')) breadcrumbs.push({ label: t('Keanggotaan'), href: route('memberships.index') });
         if (route().current('activity-schemes.*')) breadcrumbs.push({ label: t('Kegiatan'), href: route('activities.index') });
-        breadcrumbs.push(activeMenu ? { label: activeMenu.label, href: activeMenu.href } : { label: t(route().current('profile.edit') ? 'Profil akun' : 'Laporan siswa') });
+        breadcrumbs.push(activeMenu ? { label: activeMenu.label, href: activeMenu.href } : { label: t(route().current('notifications.index') ? 'Notifikasi Kegiatan' : route().current('profile.edit') ? 'Profil akun' : 'Laporan siswa') });
         if (route().current('students.create')) breadcrumbs.push({ label: t('Tambah Anggota') });
         if (route().current('students.edit')) breadcrumbs.push({ label: t('Edit Anggota') });
         if (route().current('activities.create')) breadcrumbs.push({ label: t('Buat kegiatan') });
@@ -73,8 +80,7 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
         <p className="ec-workspace-label">{t("Ruang")} {t(role)}</p>
         <nav className="ec-nav" aria-label={t("Menu :value1", { value1: role })}><SidebarMenu items={menus} onNavigate={() => setMobileOpen(false)} /></nav>
         {user.is_panitia && <div className="ec-role-card"><p className="ec-eyebrow">{t("Peran Anda")}</p><strong>{t("Asisten penilai pembina")}</strong><p>{t("Catat pengamatan pada penugasan Anda. Pembina memutuskan nilai resmi.")}</p></div>}
-        <div className="ec-sidebar-bottom"><div className="ec-user"><Avatar name={user.name} /><div><strong>{user.name}</strong><small>{user.username} · {t(role)}</small></div></div>
-            <Link href={route('profile.edit')} className="ec-account-link" aria-current={route().current('profile.edit') ? 'page' : undefined}><Icon name="user" />{t("Profil akun")}</Link>
+        <div className="ec-sidebar-bottom">
             <Link href={route('logout')} method="post" as="button" className="ec-account-link"><Icon name="logout" />{t("Log Out")}</Link>
         </div>
     </>;
@@ -88,7 +94,7 @@ export default function WorkspaceLayout({ children, header }: PropsWithChildren<
         </Dialog>
         <div className="ec-body"><header className="ec-topbar"><div className="ec-topbar-start"><button type="button" className="ec-mobile-toggle ec-icon-button" onClick={() => setMobileOpen(true)} aria-label={t("Buka menu")} aria-expanded={mobileOpen} aria-controls="workspace-mobile-menu"><Icon name="menu" /></button>
             <Breadcrumbs items={breadcrumbs} /></div>
-            <div className="ec-topbar-actions"><LanguageSwitcher /><div className="ec-topbar-user"><Avatar name={user.name} /><div><strong>{user.name}</strong><small>{t(role)}</small></div></div></div>
+            <div className="ec-topbar-actions"><NotificationBell /><LanguageSwitcher /><UserAccountMenu /></div>
         </header>
             {header && <div className="ec-legacy-heading">{header}</div>}
             <main id="workspace-main" tabIndex={-1} className="ec-main">{flash?.success && <div role="status" className="ec-notice ec-notice-success">{t(flash.success)}</div>}{children}</main>

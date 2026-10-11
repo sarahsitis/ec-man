@@ -3,7 +3,9 @@
 Buka **Kegiatan → Materi & Dokumentasi** pada kegiatan yang dituju. Bagian ini juga tersedia pada detail kegiatan, sebelum presensi.
 
 - Pembina dan panitia dengan masa jabatan aktif dapat mengunggah beberapa berkas sekaligus beserta keterangan opsional.
+- Narasumber menggunakan akun panitia EC yang sudah ada; izin unggah mengikuti status panitia aktif akun tersebut.
 - Siswa dapat melihat dan mengunduh berkas pada kegiatan semester keanggotaannya atau kegiatan dengan riwayat presensinya.
+- Formulir unggah mengikuti izin `canUploadAttachments` dari server. Siswa biasa serta panitia yang masa jabatannya berakhir hanya melihat daftar berkas dan keterangan akses baca. Mengirim parameter izin palsu tidak memberikan hak unggah.
 - Pembina dapat menghapus seluruh berkas. Panitia aktif hanya dapat menghapus berkas yang diunggahnya sendiri. Penghapusan memerlukan konfirmasi.
 - Foto JPG, JPEG, PNG, dan WebP ditampilkan sebagai pratinjau. Dokumen dan video tersedia melalui tombol unduh.
 

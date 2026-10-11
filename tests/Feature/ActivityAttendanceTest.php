@@ -194,12 +194,15 @@ class ActivityAttendanceTest extends TestCase {
         $this->assertNotNull($this->panitia->fresh());
     }
 
-    public function test_only_pembina_can_manage_activity_schemes_and_schedules(): void {
+    public function test_only_pembina_can_manage_activity_schemes_and_edit_or_delete_schedules(): void {
         $item = $this->activity();
         $scheme = ActivityScheme::create(['name' => 'Debat', 'category' => 'Debat', 'objectives' => 'Berlatih debat', 'agenda' => 'Pembukaan dan debat', 'duration_minutes' => 60]);
         foreach ([$this->panitia, $this->first->user] as $actor) {
-            $this->actingAs($actor)->get('/kegiatan/buat')->assertForbidden();
-            $this->post('/kegiatan', $this->data())->assertForbidden();
+            $this->actingAs($actor);
+            if (!$actor->isPanitia()) {
+                $this->get('/kegiatan/buat')->assertForbidden();
+                $this->post('/kegiatan', $this->data())->assertForbidden();
+            }
             $this->get('/kegiatan/'.$item->id.'/edit')->assertForbidden();
             $this->put('/kegiatan/'.$item->id, $this->data())->assertForbidden();
             $this->delete('/kegiatan/'.$item->id)->assertForbidden();

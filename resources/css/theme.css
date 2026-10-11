@@ -135,3 +135,11 @@
     .ec-import-file::file-selector-button { transition: none; }
     .ec-action.ec-action { transition: none; }
 }
+.ec-notification-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid var(--ec-border); border-radius: 12px; color: var(--ec-primary-strong); background: white; }
+.ec-notification-bell:hover, .ec-notification-bell[aria-current="page"] { background: var(--ec-primary-soft); }
+.ec-notification-bell:focus-visible { outline: 3px solid var(--ec-primary); outline-offset: 3px; }
+.ec-notification-badge { position: absolute; top: -5px; right: -5px; min-width: 20px; padding: 1px 4px; border: 2px solid white; border-radius: 999px; background: var(--ec-secondary); color: white; font-size: 10px; font-weight: 700; text-align: center; }
+.ec-history-filter { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding: 18px; border: 1px solid var(--ec-border); border-radius: 14px; background: white; color: var(--ec-text); font-size: 13px; }
+.ec-history-filter strong { font-size: 26px; line-height: 1.1; }
+.ec-history-filter:hover, .ec-history-filter-active { border-color: var(--ec-purple); background: var(--ec-primary-soft); color: var(--ec-purple); }
+.ec-history-filter:focus-visible { outline: 2px solid var(--ec-purple); outline-offset: 3px; }

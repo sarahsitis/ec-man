@@ -8,6 +8,7 @@ use App\Models\ActivityAttachment;
 use App\Models\ActivityScheme;
 use App\Models\Attendance;
 use App\Services\AttendanceService;
+use App\Services\ActivityNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,10 @@ class ActivityController extends Controller {
         ]);
     }
 
-    public function create() { return $this->form(); }
+    public function create(Request $request) {
+        abort_unless($this->staff($request), 403);
+        return $this->form();
+    }
     public function edit(Activity $activity) { return $this->form($activity); }
 
     private function data(Request $request): array {
@@ -66,9 +70,15 @@ class ActivityController extends Controller {
         ]);
     }
 
-    public function store(Request $request) {
-        $activity = Activity::create(array_merge($this->data($request), ['created_by' => $request->user()->id]));
-        return redirect()->route('activities.show', $activity)->with('success', 'Kegiatan dibuat.');
+    public function store(Request $request, ActivityNotificationService $notifications) {
+        abort_unless($this->staff($request), 403);
+        $data = $this->data($request);
+        [$activity, $count] = DB::transaction(function () use ($request, $data, $notifications) {
+            $activity = Activity::create(array_merge($data, ['created_by' => $request->user()->id]));
+            return [$activity, $notifications->created($activity, $request->user())];
+        });
+        return redirect()->route('activities.show', $activity)->with('success', $activity->status === 'scheduled'
+            ? __('Kegiatan dibuat. Notifikasi dikirim kepada :count siswa.', ['count' => $count]) : __('Kegiatan dibuat.'));
     }
 
     public function update(Request $request, Activity $activity) {
@@ -101,6 +111,7 @@ class ActivityController extends Controller {
                 'maxFiles' => ActivityAttachment::MAX_FILES, 'maxFileMb' => ActivityAttachment::MAX_FILE_KB / 1024,
                 'maxBatchMb' => ActivityAttachment::MAX_BATCH_KB / 1024,
             ],
+            'canUploadAttachments' => $staff,
             'students' => $staff ? $service->roster($activity)->select('id', 'full_name', 'student_number', 'class_name', 'status')->orderBy('full_name')->get() : [],
             'attendances' => $staff ? $activity->attendances()->with('recorder:id,name')->get() : [],
             'myAttendance' => $staff ? null : $activity->attendances()->where('student_id', $request->user()->student?->id)->first(),

@@ -10,7 +10,6 @@
     .ec-public-actions { gap: 6px; }
     .ec-language { padding-inline: 4px; gap: 3px; }
     .ec-language select { max-width: 100px; font-size: 11px; }
-    .ec-topbar-actions .ec-topbar-user { display: none; }
     .ec-login .el-login-header { flex-wrap: wrap; gap: 12px; }
 }
 @media (max-width: 440px) {

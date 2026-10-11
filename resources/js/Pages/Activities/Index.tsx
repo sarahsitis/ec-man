@@ -19,7 +19,7 @@ export default function Index({ activities, years, statuses, filters }: {
     const [search, setSearch] = useState(filters.search);
     const [status, setStatus] = useState(filters.status);
     const [year, setYear] = useState(String(filters.academic_year_id || ''));
-    return <AuthenticatedLayout header={<div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t(staff ? "Kegiatan & Presensi" : "Kegiatan Saya")}</h2>{pembina && <Link className="ec-action ec-action-primary" href={route('activities.create')}>{t("Buat kegiatan")}</Link>}</div>}>
+    return <AuthenticatedLayout header={<div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t(staff ? "Kegiatan & Presensi" : "Kegiatan Saya")}</h2><div className="flex flex-wrap gap-2"><Link className="ec-action ec-action-secondary" href={route('activities.history')}>{t('Histori Kegiatan')}</Link>{staff && <Link className="ec-action ec-action-primary" href={route('activities.create')}>{t("Buat kegiatan")}</Link>}</div></div>}>
         <Head title={t("Kegiatan")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><DataTransferActions dataset="attendances" academicYearId={filters.academic_year_id} />
             <div className={panel}>
                 <form className="mb-5 flex flex-wrap items-end gap-3" onSubmit={e=>{e.preventDefault(); router.get(route('activities.index'), { search, status, academic_year_id: year, per_page: activities.per_page });}}>

@@ -28,12 +28,17 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function (Request $request) {
-    if ($request->user()->isPanitia()) { return redirect()->route('panitia.dashboard'); }
-    return Inertia::render('Dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/notifikasi', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifikasi/ringkasan', [\App\Http\Controllers\NotificationController::class, 'summary'])->name('notifications.summary');
+    Route::post('/notifikasi/baca-semua', [\App\Http\Controllers\NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('/notifikasi/{notification}/baca', [\App\Http\Controllers\NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifikasi/{notification}/buka', [\App\Http\Controllers\NotificationController::class, 'open'])->name('notifications.open');
+    Route::get('/kegiatan/buat', [ActivityController::class, 'create'])->name('activities.create');
+    Route::get('/kegiatan/histori', [\App\Http\Controllers\ActivityHistoryController::class, 'index'])->name('activities.history');
+    Route::post('/kegiatan', [ActivityController::class, 'store'])->name('activities.store');
     Route::get('/kegiatan', [ActivityController::class, 'index'])->name('activities.index');
     Route::post('/kegiatan/{activity}/presensi', [ActivityController::class, 'recordAttendance'])->name('activities.attendance');
     Route::post('/kegiatan/{activity}/berkas', [\App\Http\Controllers\ActivityAttachmentController::class, 'store'])->name('activities.attachments.store');
@@ -78,8 +83,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/skema-kegiatan', [ActivitySchemeController::class, 'store'])->name('activity-schemes.store');
         Route::put('/skema-kegiatan/{activityScheme}', [ActivitySchemeController::class, 'update'])->name('activity-schemes.update');
         Route::delete('/skema-kegiatan/{activityScheme}', [ActivitySchemeController::class, 'destroy'])->name('activity-schemes.destroy');
-        Route::get('/kegiatan/buat', [ActivityController::class, 'create'])->name('activities.create');
-        Route::post('/kegiatan', [ActivityController::class, 'store'])->name('activities.store');
         Route::get('/kegiatan/{activity}/edit', [ActivityController::class, 'edit'])->name('activities.edit');
         Route::put('/kegiatan/{activity}', [ActivityController::class, 'update'])->name('activities.update');
         Route::delete('/kegiatan/{activity}', [ActivityController::class, 'destroy'])->name('activities.destroy');

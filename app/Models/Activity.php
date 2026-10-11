@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,6 +58,16 @@ class Activity extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(ActivityAttachment::class);
+    }
+
+    public function scopeUpcoming(Builder $query, CarbonImmutable $now): Builder
+    {
+        $now = $now->setTimezone('Asia/Jakarta');
+
+        return $query->where('status', 'scheduled')->where(fn ($dates) => $dates
+            ->where('activity_date', '>', $now->toDateString())
+            ->orWhere(fn ($today) => $today->where('activity_date', $now->toDateString())
+                ->where(fn ($end) => $end->whereNull('end_time')->orWhereTime('end_time', '>=', $now->format('H:i:s')))));
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder

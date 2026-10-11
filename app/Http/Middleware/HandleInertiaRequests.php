@@ -35,6 +35,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => app()->getLocale(),
             'flash' => ['success' => fn () => $request->session()->get('success')],
             'classGroups' => fn () => ClassCatalog::groups(),
+            'notificationSummary' => fn () => ['unreadCount' => $request->user()?->unreadNotifications()->where('type', \App\Notifications\ActivityScheduled::class)->count() ?? 0],
             'auth' => [
                 'user' => fn () => $request->user() ? [
                     ...$request->user()->toArray(),
