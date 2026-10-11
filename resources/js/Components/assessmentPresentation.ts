@@ -24,12 +24,12 @@ export function recommendationErrors(data: RecommendationData, submit: boolean):
     return errors;
 }
 
-export function dateLabel(value: string | null | undefined) {
-    if (!value) { return 'Tanpa batas waktu'; }
+export function dateLabel(value: string | null | undefined, locale: 'id' | 'en' = 'id') {
+    if (!value) { return locale === 'en' ? 'No deadline' : 'Tanpa batas waktu'; }
     const date = new Date(`${value.slice(0, 10)}T12:00:00+07:00`);
-    return Number.isNaN(date.getTime()) ? 'Tanggal belum tersedia' : date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    return Number.isNaN(date.getTime()) ? (locale === 'en' ? 'Date not available' : 'Tanggal belum tersedia') : date.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
 }
 
-export function timeLabel(value: string | null | undefined) {
-    return value ? new Date(value).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB' : 'Belum tercatat';
+export function timeLabel(value: string | null | undefined, locale: 'id' | 'en' = 'id') {
+    return value ? new Date(value).toLocaleString(locale === 'en' ? 'en-GB' : 'id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB' : (locale === 'en' ? 'Not recorded' : 'Belum tercatat');
 }

@@ -99,7 +99,7 @@ class StudentController extends Controller
             'status' => ['required', Rule::in(array_keys(Student::STATUSES))],
         ]);
         Student::whereIn('id', $data['student_ids'])->update(['status' => $data['status']]);
-        return back()->with('success', 'Status '.count($data['student_ids']).' siswa diperbarui.');
+        return back()->with('success', __('Status :count siswa diperbarui.', ['count' => count($data['student_ids'])]));
     }
 
     public function updateStatus(Request $request, Student $student) {

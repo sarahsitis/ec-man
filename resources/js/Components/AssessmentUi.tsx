@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import TablePagination from './TablePagination';
@@ -18,6 +19,7 @@ export interface Assignment {
 export interface Paginator<T> { data: T[]; current_page: number; last_page: number; prev_page_url: string | null; next_page_url: string | null; total: number; per_page: number; from: number | null; to: number | null }
 export const statuses = assessmentStatuses;
 export function Paging<T>({ page }: { page: Paginator<T> }) {
+    const { t, locale, dateLocale } = useTranslation();
     const { url } = usePage();
     const [busy, setBusy] = useState(false);
     const changeSize = (size: number) => {
@@ -30,18 +32,19 @@ export function Paging<T>({ page }: { page: Paginator<T> }) {
     };
     return <TablePagination perPage={page.per_page} currentPage={page.current_page} lastPage={page.last_page}
         total={page.total} from={page.from} to={page.to} onSizeChange={changeSize} busy={busy}
-        previous={page.prev_page_url && !busy ? <Link href={page.prev_page_url} className="text-indigo-600" rel="prev" preserveScroll>Sebelumnya</Link> : <span aria-disabled="true">Sebelumnya</span>}
-        next={page.next_page_url && !busy ? <Link href={page.next_page_url} className="text-indigo-600" rel="next" preserveScroll>Berikutnya</Link> : <span aria-disabled="true">Berikutnya</span>} />;
+        previous={page.prev_page_url && !busy ? <Link href={page.prev_page_url} className="ec-action ec-action-primary" rel="prev" preserveScroll>{t("Sebelumnya")}</Link> : <span className="ec-action ec-action-secondary" aria-disabled="true">{t("Sebelumnya")}</span>}
+        next={page.next_page_url && !busy ? <Link href={page.next_page_url} className="ec-action ec-action-primary" rel="next" preserveScroll>{t("Berikutnya")}</Link> : <span className="ec-action ec-action-secondary" aria-disabled="true">{t("Berikutnya")}</span>} />;
 }
 export function AssignmentTable({ items, compact = false }: { items: Assignment[]; compact?: boolean }) {
-    return <div className="ec-table-wrap overflow-x-auto" role="region" aria-label="Tabel penugasan siswa, geser untuk melihat seluruh kolom" tabIndex={0}><table className={`ec-table ${compact ? 'ec-table-compact' : ''} w-full text-left text-sm`}><caption className="sr-only">Penugasan siswa dan status rekomendasi</caption><thead><tr className="border-b">
-        <th scope="col" className="p-3">Siswa</th><th scope="col" className="p-3">Tugas / Aspek</th>{!compact && <th scope="col" className="p-3">Panitia</th>}<th scope="col" className="p-3">Batas waktu</th><th scope="col" className="p-3">Status</th><th scope="col" className="p-3">Aksi</th>
+    const { t, locale, dateLocale } = useTranslation();
+    return <div className="ec-table-wrap overflow-x-auto" role="region" aria-label={t("Tabel penugasan siswa, geser untuk melihat seluruh kolom")} tabIndex={0}><table className={`ec-table ${compact ? 'ec-table-compact' : ''} w-full text-left text-sm`}><caption className="sr-only">{t("Penugasan siswa dan status rekomendasi")}</caption><thead><tr className="border-b">
+        <th scope="col" className="p-3">{t("Siswa")}</th><th scope="col" className="p-3">{t("Tugas / Aspek")}</th>{!compact && <th scope="col" className="p-3">{t("Panitia")}</th>}<th scope="col" className="p-3">{t("Batas waktu")}</th><th scope="col" className="p-3">{t("Status")}</th><th scope="col" className="p-3">{t("Aksi")}</th>
     </tr></thead><tbody>{items.map(item => <tr key={item.id} className="border-b">
         <td className="p-3"><div className="ec-person"><Avatar name={item.student.full_name} /><div><strong>{item.student.full_name}</strong><small>{item.student.student_number} · {item.student.class_name || 'Kelas belum diisi'}</small></div></div></td>
         <td className="p-3">{item.title}<div className="ec-table-detail capitalize text-gray-500">{item.aspect}</div></td>
-        {!compact && <td className="p-3">{item.assessor?.name || '—'}</td>}<td className="p-3">{dateLabel(item.due_date)}<span className="ec-table-detail">WIB</span></td>
-        <td className="p-3"><AssessmentBadge status={item.status} />{item.official_score && <span className="ec-table-detail">Nilai resmi {item.official_score.value}/4</span>}</td><td className="p-3"><Link href={route('assessments.show', item.id)} className="ec-btn ec-btn-soft ec-btn-small font-medium text-indigo-600" aria-label={`Buka penugasan ${item.title} untuk ${item.student.full_name}`}>{['assigned', 'draft', 'revision'].includes(item.status) ? 'Buka penilaian' : 'Lihat hasil'}<Icon name="arrow" /></Link></td>
-    </tr>)}{items.length === 0 && <tr><td colSpan={compact ? 5 : 6} className="p-6 text-center text-gray-500">Belum ada penugasan pada daftar ini.</td></tr>}</tbody></table></div>;
+        {!compact && <td className="p-3">{item.assessor?.name || '—'}</td>}<td className="p-3">{dateLabel(item.due_date, locale)}<span className="ec-table-detail">WIB</span></td>
+        <td className="p-3"><AssessmentBadge status={item.status} />{item.official_score && <span className="ec-table-detail">{t("Nilai resmi")} {item.official_score.value}/4</span>}</td><td className="p-3"><Link href={route('assessments.show', item.id)} className="ec-btn ec-btn-soft ec-btn-small font-medium text-indigo-600" aria-label={t("Buka penugasan :value1 untuk :value2", { value1: item.title, value2: item.student.full_name })}><Icon name={['assigned', 'draft', 'revision'].includes(item.status) ? 'clipboard' : 'chart'} />{['assigned', 'draft', 'revision'].includes(item.status) ? t("Buka penilaian") : t("Lihat hasil")}</Link></td>
+    </tr>)}{items.length === 0 && <tr><td colSpan={compact ? 5 : 6} className="p-6 text-center text-gray-500">{t("Belum ada penugasan pada daftar ini.")}</td></tr>}</tbody></table></div>;
 }
 export const panel = 'ec-standard-panel rounded-lg bg-white p-6 shadow dark:bg-gray-800 dark:text-gray-100';
 export const field = 'ec-standard-input mt-1 block w-full rounded-md border-gray-300 text-gray-900';

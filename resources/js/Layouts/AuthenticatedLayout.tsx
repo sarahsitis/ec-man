@@ -1,3 +1,5 @@
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { useTranslation } from '@/i18n/useTranslation';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
@@ -15,40 +17,41 @@ function LegacyAuthenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
+    const { t, locale, dateLocale } = useTranslation();
     const page = usePage();
     const user = page.props.auth.user;
     const historyTab = new URLSearchParams(page.url.split('?')[1] ?? '').get('status') === 'history';
     const queueDetail = new URLSearchParams(page.url.split('?')[1] ?? '').get('from') === 'queue';
 
     const menus = user.is_panitia ? [
-        { label: 'Dashboard Panitia', href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
-        { label: 'Penugasan Saya', href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
-        { label: 'Riwayat Rekomendasi', href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
-        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
-        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.index') || route().current('pretests.show') },
-        { label: 'Kegiatan & Presensi', href: route('activities.index'), active: route().current('activities.*') },
+        { label: t("Dashboard Panitia"), href: route('panitia.dashboard'), active: route().current('panitia.dashboard') },
+        { label: t("Penugasan Saya"), href: route('panitia.assignments'), active: route().current('panitia.assignments') && !historyTab },
+        { label: t("Riwayat Rekomendasi"), href: route('panitia.assignments', {status:'history'}), active: route().current('panitia.assignments') && historyTab },
+        { label: t("Perkembangan Saya"), href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
+        { label: t("Pre-test Saya"), href: route('pretests.index'), active: route().current('pretests.index') || route().current('pretests.show') },
+        { label: t("Kegiatan & Presensi"), href: route('activities.index'), active: route().current('activities.*') },
     ] : user.role === 'pembina' ? [
-        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
-        { label: 'Anggota', href: route('students.index'), active: route().current('students.*') },
-        { label: 'Panitia EC', href: route('committee-roles.index'), active: route().current('committee-roles.*') },
-        { label: 'Keanggotaan', href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
-        { label: 'Kegiatan', href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
-        { label: 'Penugasan', href: route('assessments.index'), active: route().current('assessments.index') || (route().current('assessments.show') && !queueDetail) },
-        { label: 'Pemeriksaan', href: route('assessments.queue'), active: route().current('assessments.queue') || (route().current('assessments.show') && queueDetail) },
-        { label: 'Hasil Pre-test', href: route('pretests.reports'), active: route().current('pretests.*') },
-        { label: 'Laporan Minat', href: route('reports.interests'), active: route().current('reports.interests') },
+        { label: t("Dashboard"), href: route('dashboard'), active: route().current('dashboard') },
+        { label: t("Anggota"), href: route('students.index'), active: route().current('students.*') },
+        { label: t("Panitia EC"), href: route('committee-roles.index'), active: route().current('committee-roles.*') },
+        { label: t("Keanggotaan"), href: route('memberships.index'), active: route().current('memberships.*') || route().current('academic-years.*') },
+        { label: t("Kegiatan"), href: route('activities.index'), active: route().current('activities.*') || route().current('activity-schemes.*') },
+        { label: t("Penugasan"), href: route('assessments.index'), active: route().current('assessments.index') || (route().current('assessments.show') && !queueDetail) },
+        { label: t("Pemeriksaan"), href: route('assessments.queue'), active: route().current('assessments.queue') || (route().current('assessments.show') && queueDetail) },
+        { label: t("Hasil Pre-test"), href: route('pretests.reports'), active: route().current('pretests.*') },
+        { label: t("Laporan Minat"), href: route('reports.interests'), active: route().current('reports.interests') },
     ] : [
-        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard') },
-        { label: 'Perkembangan Saya', href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
-        { label: 'Pre-test Saya', href: route('pretests.index'), active: route().current('pretests.*') },
-        { label: 'Kegiatan Saya', href: route('activities.index'), active: route().current('activities.*') },
+        { label: t("Dashboard"), href: route('dashboard'), active: route().current('dashboard') },
+        { label: t("Perkembangan Saya"), href: route('progress.index'), active: route().current('progress.index') || route().current('reports.student') },
+        { label: t("Pre-test Saya"), href: route('pretests.index'), active: route().current('pretests.*') },
+        { label: t("Kegiatan Saya"), href: route('activities.index'), active: route().current('activities.*') },
     ];
     const flash = usePage().props.flash as {success?: string} | undefined;
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="ec-student-shell min-h-screen bg-gray-100 dark:bg-gray-900">
             <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -60,10 +63,11 @@ function LegacyAuthenticated({
                             </div>
 
                             <div className="hidden space-x-4 xl:-my-px xl:ms-6 xl:flex">
-                                {menus.map(menu => <NavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</NavLink>)}
+                                {menus.map(menu => <NavLink key={menu.label} href={menu.href} active={!!menu.active}>{t(menu.label)}</NavLink>)}
                             </div>
                         </div>
 
+                        <div className="flex items-center"><LanguageSwitcher /></div>
                         <div className="hidden xl:ms-6 xl:flex xl:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
@@ -95,15 +99,13 @@ function LegacyAuthenticated({
                                         <Dropdown.Link
                                             href={route('profile.edit')}
                                         >
-                                            Profile
-                                        </Dropdown.Link>
+                                            {t("Profile")}</Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
-                                        </Dropdown.Link>
+                                            {t("Log Out")}</Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
@@ -159,7 +161,7 @@ function LegacyAuthenticated({
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        {menus.map(menu => <ResponsiveNavLink key={menu.label} href={menu.href} active={!!menu.active}>{menu.label}</ResponsiveNavLink>)}
+                        {menus.map(menu => <ResponsiveNavLink key={menu.label} href={menu.href} active={!!menu.active}>{t(menu.label)}</ResponsiveNavLink>)}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
@@ -174,15 +176,13 @@ function LegacyAuthenticated({
 
                         <div className="mt-3 space-y-1">
                             <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
+                                {t("Profile")}</ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}
                                 as="button"
                             >
-                                Log Out
-                            </ResponsiveNavLink>
+                                {t("Log Out")}</ResponsiveNavLink>
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,7 @@ function LegacyAuthenticated({
                 </header>
             )}
 
-            {flash?.success && <div role="status" className="mx-auto mt-4 max-w-7xl rounded bg-green-100 p-4 text-green-900">{flash.success}</div>}
+            {flash?.success && <div role="status" className="mx-auto mt-4 max-w-7xl rounded bg-green-100 p-4 text-green-900">{t(flash.success)}</div>}
             <main>{children}</main>
         </div>
     );

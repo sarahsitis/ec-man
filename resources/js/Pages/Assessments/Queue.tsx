@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import WorkspaceLayout from '@/Layouts/WorkspaceLayout';
 import { Assignment, Paging, Paginator } from '@/Components/AssessmentUi';
 import { AssessmentBadge, Avatar, EmptyState, Icon, PageHeading } from '@/Components/WorkspaceUi';
@@ -9,23 +10,24 @@ const tabs = { submitted: 'Menunggu pemeriksaan', approved: 'Disahkan', revision
 export default function Queue({ assignments, counts, filters }: {
     assignments: Paginator<Assignment>; counts: Record<string, number>; filters: { status: string; search: string };
 }) {
+    const { t, locale, dateLocale } = useTranslation();
     const [search, setSearch] = useState(filters.search);
     const errors = usePage().props.errors;
-    return <WorkspaceLayout><Head title="Pemeriksaan Rekomendasi" />
-        <PageHeading eyebrow="Ruang pembina" title="Pemeriksaan rekomendasi" description="Tinjau pengamatan panitia, berikan arahan revisi, atau sahkan nilai resmi siswa."
-            extra={<Link href={route('assessments.index')} className="ec-btn"><Icon name="people" />Kelola penugasan</Link>} />
-        <div className="ec-notice ec-notice-success"><strong>{counts.submitted || 0} rekomendasi menunggu pemeriksaan</strong>Antrean menampilkan pengajuan paling lama terlebih dahulu. Pengesahan menerbitkan nilai resmi; draf, pengajuan, revisi, dan penolakan belum menjadi nilai resmi.</div>
-        <section className="ec-card"><div className="ec-toolbar"><nav aria-label="Status pemeriksaan" className="ec-tabs">{Object.entries(tabs).map(([status, label]) => <Link key={status} aria-current={filters.status === status ? 'page' : undefined} href={route('assessments.queue', { status, search: filters.search, per_page: assignments.per_page })}>{label} <span>({counts[status] || 0})</span></Link>)}</nav></div>
+    return <WorkspaceLayout><Head title={t("Pemeriksaan Rekomendasi")} />
+        <PageHeading eyebrow={t("Ruang pembina")} title={t("Pemeriksaan rekomendasi")} description={t("Tinjau pengamatan panitia, berikan arahan revisi, atau sahkan nilai resmi siswa.")}
+            extra={<Link href={route('assessments.index')} className="ec-btn"><Icon name="people" />{t("Kelola penugasan")}</Link>} />
+        <div className="ec-notice ec-notice-success"><strong>{counts.submitted || 0}  {t("rekomendasi menunggu pemeriksaan")}</strong>{t("Antrean menampilkan pengajuan paling lama terlebih dahulu. Pengesahan menerbitkan nilai resmi; draf, pengajuan, revisi, dan penolakan belum menjadi nilai resmi.")}</div>
+        <section className="ec-card"><div className="ec-toolbar"><nav aria-label={t("Status pemeriksaan")} className="ec-tabs">{Object.entries(tabs).map(([status, label]) => <Link key={status} aria-current={filters.status === status ? 'page' : undefined} href={route('assessments.queue', { status, search: filters.search, per_page: assignments.per_page })}>{t(label)} <span>({counts[status] || 0})</span></Link>)}</nav></div>
             <form className="ec-toolbar" onSubmit={event => { event.preventDefault(); router.get(route('assessments.queue'), { status: filters.status, search, per_page: assignments.per_page }); }}>
-                <div className="min-w-0 flex-1"><label htmlFor="queue_search" className="ec-label">Cari siswa, NIS, judul tugas, atau panitia</label><input id="queue_search" type="search" maxLength={100} className="ec-input" value={search} onChange={event => setSearch(event.target.value)} placeholder="Cari rekomendasi…" aria-invalid={!!errors.search} aria-describedby={errors.search ? 'queue_search_error' : undefined} />{errors.search && <p id="queue_search_error" role="alert" className="ec-error">{errors.search}</p>}</div><button className="ec-btn ec-btn-primary">Cari</button>
+                <div className="min-w-0 flex-1"><label htmlFor="queue_search" className="ec-label">{t("Cari siswa, NIS, judul tugas, atau panitia")}</label><input id="queue_search" type="search" maxLength={100} className="ec-input" value={search} onChange={event => setSearch(event.target.value)} placeholder={t("Cari rekomendasi…")} aria-invalid={!!errors.search} aria-describedby={errors.search ? 'queue_search_error' : undefined} />{errors.search && <p id="queue_search_error" role="alert" className="ec-error">{errors.search}</p>}</div><button className="ec-btn ec-btn-primary">{t("Cari")}</button>
             </form>
-            {assignments.data.length ? <div className="ec-table-wrap" role="region" aria-label="Tabel rekomendasi siswa, geser untuk melihat seluruh kolom" tabIndex={0}><table className="ec-table"><caption className="sr-only">Antrean rekomendasi dan keputusan pembina</caption><thead><tr>{['Siswa', 'Tugas / Aspek', 'Panitia', 'Diajukan', 'Skor', 'Status', 'Aksi'].map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+            {assignments.data.length ? <div className="ec-table-wrap" role="region" aria-label={t("Tabel rekomendasi siswa, geser untuk melihat seluruh kolom")} tabIndex={0}><table className="ec-table"><caption className="sr-only">{t("Antrean rekomendasi dan keputusan pembina")}</caption><thead><tr>{[t("Siswa"), t("Tugas / Aspek"), t("Panitia"), t("Diajukan"), t("Skor"), t("Status"), t("Aksi")].map(label => <th scope="col" key={label}>{t(label)}</th>)}</tr></thead>
                 <tbody>{assignments.data.map(item => <tr key={item.id}><td><div className="ec-person"><Avatar name={item.student.full_name} /><div><strong>{item.student.full_name}</strong><small>{item.student.student_number} · {item.student.class_name || 'Kelas belum diisi'}</small></div></div></td>
-                    <td>{item.title}<span className="ec-table-detail capitalize">{item.aspect}</span></td><td>{item.assessor?.name}</td><td>{timeLabel(item.submitted_at)}</td>
-                    <td>Usulan: {item.proposed_score ?? '—'}/4{item.official_score && <span className="ec-table-detail font-semibold">Resmi: {item.official_score.value}/4</span>}</td>
-                    <td><AssessmentBadge status={item.status} />{item.reviewed_at && <span className="ec-table-detail">{item.reviewer?.name} · {timeLabel(item.reviewed_at)}</span>}</td>
-                    <td><Link className="ec-btn ec-btn-soft ec-btn-small" href={route('assessments.show', { assignment: item.id, from: 'queue' })} aria-label={`${item.status === 'submitted' ? 'Periksa rekomendasi' : 'Lihat keputusan'} untuk ${item.student.full_name}`}>{item.status === 'submitted' ? 'Periksa' : 'Lihat keputusan'}<Icon name="arrow" /></Link></td>
-                </tr>)}</tbody></table></div> : <EmptyState title="Tidak ada rekomendasi yang sesuai"><p>Ubah pencarian atau pilih status lain untuk melihat rekomendasi.</p><Link href={route('assessments.queue')} className="ec-btn ec-btn-soft mt-4">Buka antrean menunggu</Link></EmptyState>}
+                    <td>{item.title}<span className="ec-table-detail capitalize">{item.aspect}</span></td><td>{item.assessor?.name}</td><td>{timeLabel(item.submitted_at, locale)}</td>
+                    <td>{t("Usulan:")} {item.proposed_score ?? '—'}/4{item.official_score && <span className="ec-table-detail font-semibold">{t("Resmi:")} {item.official_score.value}/4</span>}</td>
+                    <td><AssessmentBadge status={item.status} />{item.reviewed_at && <span className="ec-table-detail">{item.reviewer?.name} · {timeLabel(item.reviewed_at, locale)}</span>}</td>
+                    <td><Link className="ec-btn ec-btn-soft ec-btn-small" href={route('assessments.show', { assignment: item.id, from: 'queue' })} aria-label={`${item.status === 'submitted' ? t("Periksa rekomendasi") : t("Lihat keputusan")} untuk ${item.student.full_name}`}><Icon name={item.status === 'submitted' ? 'clipboard' : 'check'} />{item.status === 'submitted' ? t("Periksa") : t("Lihat keputusan")}</Link></td>
+                </tr>)}</tbody></table></div> : <EmptyState title={t("Tidak ada rekomendasi yang sesuai")}><p>{t("Ubah pencarian atau pilih status lain untuk melihat rekomendasi.")}</p><Link href={route('assessments.queue')} className="ec-btn ec-btn-soft mt-4">{t("Buka antrean menunggu")}</Link></EmptyState>}
             <Paging page={assignments} />
         </section>
     </WorkspaceLayout>;

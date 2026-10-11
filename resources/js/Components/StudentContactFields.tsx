@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
@@ -14,6 +15,7 @@ export default function StudentContactFields({ data, errors, onText, onPhoto, ph
     onText: (key: ContactKey, value: string) => void;
     onPhoto: (file: File | null) => void; photoUrl?: string | null; lockClass?: boolean;
 }) {
+    const { t, locale, dateLocale } = useTranslation();
     const [preview, setPreview] = useState<string | null>(null);
     useEffect(() => {
         if (!data.profile_photo) { setPreview(null); return; }
@@ -23,23 +25,23 @@ export default function StudentContactFields({ data, errors, onText, onPhoto, ph
     }, [data.profile_photo]);
     return <>
         <div>
-            <InputLabel htmlFor="profile_photo" value="Foto profil" />
-            {(preview || photoUrl) && <img src={preview || photoUrl || ''} alt="Foto profil" className="my-3 h-24 w-24 rounded-full object-cover" />}
+            <InputLabel htmlFor="profile_photo" value={t("Foto profil")} />
+            {(preview || photoUrl) && <img src={preview || photoUrl || ''} alt={t("Foto profil")} className="my-3 h-24 w-24 rounded-full object-cover" />}
             <input id="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full" onChange={e => onPhoto(e.target.files?.[0] ?? null)} />
-            <p className="mt-1 text-sm text-gray-500">JPG, PNG, atau WebP. Maksimal 2 MB. Kosongkan untuk mempertahankan foto lama.</p>
+            <p className="mt-1 text-sm text-gray-500">{t("JPG, PNG, atau WebP. Maksimal 2 MB. Kosongkan untuk mempertahankan foto lama.")}</p>
             <InputError message={errors.profile_photo} />
         </div>
         {([
-            ['phone', 'Nomor HP', 'tel'], ['class_name', 'Kelas saat ini', 'text'], ['email', 'Email', 'email'],
+            ['phone', t("Nomor HP"), 'tel'], ['class_name', t("Kelas saat ini"), 'text'], ['email', 'Email', 'email'],
         ] as const).map(([key, label, type]) => <div key={key}>
-            <InputLabel htmlFor={key} value={label} />
+            <InputLabel htmlFor={key} value={t(label)} />
             {key === 'class_name'
                 ? <ClassSelect id={key} disabled={lockClass} value={data.class_name} onChange={e => onText('class_name', e.target.value)} />
                 : <TextInput id={key} type={type} value={data[key]} maxLength={key === 'phone' ? 30 : 255} onChange={e => onText(key, e.target.value)} className="mt-1 block w-full" />}
             <InputError message={errors[key]} />
         </div>)}
         <div>
-            <InputLabel htmlFor="address" value="Alamat" />
+            <InputLabel htmlFor="address" value={t("Alamat")} />
             <textarea id="address" value={data.address} maxLength={2000} rows={3} onChange={e => onText('address', e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 text-gray-900" />
             <InputError message={errors.address} />
         </div>

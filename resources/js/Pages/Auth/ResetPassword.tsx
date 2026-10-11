@@ -1,3 +1,4 @@
+import { useTranslation } from '@/i18n/useTranslation';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -13,6 +14,7 @@ export default function ResetPassword({
     token: string;
     email: string;
 }) {
+    const { t, locale, dateLocale } = useTranslation();
     const { data, setData, post, processing, errors, reset } = useForm({
         token: token,
         email: email,
@@ -30,7 +32,7 @@ export default function ResetPassword({
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title={t("Reset Password")} />
 
             <form onSubmit={submit}>
                 <div>
@@ -50,7 +52,7 @@ export default function ResetPassword({
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value={t("Password")} />
 
                     <TextInput
                         id="password"
@@ -69,7 +71,7 @@ export default function ResetPassword({
                 <div className="mt-4">
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value={t("Confirm Password")}
                     />
 
                     <TextInput
@@ -91,8 +93,7 @@ export default function ResetPassword({
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
-                    </PrimaryButton>
+                        {t("Reset Password")}</PrimaryButton>
                 </div>
             </form>
         </GuestLayout>

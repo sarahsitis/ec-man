@@ -1,6 +1,10 @@
 @import './workspace.css';
 @import './landing.css';
 @import './login.css';
+@import './theme.css';
+@import './playful.css';
+@import './landing-motion.css';
+@import './language.css';
 
 @tailwind base;
 @tailwind components;

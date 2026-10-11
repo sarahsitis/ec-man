@@ -1,24 +1,24 @@
 .ec-login { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; padding: 28px 32px 20px; }
-.ec-login :is(button, input):focus-visible { outline: 3px solid #b47731; outline-offset: 3px; }
+.ec-login :is(button, input):focus-visible { outline: 3px solid var(--ec-deep); outline-offset: 3px; }
 .ec-login .el-login-header, .ec-login .el-login-footer { width: min(1120px, 100%); margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .ec-login .el-login-header { margin-bottom: 32px; }
 .ec-login .el-login-back { display: flex; align-items: center; gap: 9px; min-height: 44px; font-size: 12px; color: var(--el-muted); }
-.ec-login .el-login-back:hover { color: var(--el-green); }
+.ec-login .el-login-back:hover { color: var(--el-primary); }
 .ec-login .el-login-back .ec-icon { width: 16px; height: 16px; }
-.ec-login .el-login-card { width: min(1120px, 100%); display: grid; grid-template-columns: 1fr 1fr; background: white; border: 1px solid #e0e7d9; border-radius: 24px; overflow: hidden; margin: auto; box-shadow: 0 20px 70px #25422e07; }
-.ec-login .el-login-story { display: flex; flex-direction: column; justify-content: space-between; padding: 42px 45px 32px; background: #e8efdf; min-width: 0; }
+.ec-login .el-login-card { width: min(1120px, 100%); display: grid; grid-template-columns: 1fr 1fr; background: white; border: 1px solid #eee8fb; border-radius: 24px; overflow: hidden; margin: auto; box-shadow: 0 20px 70px #24133f07; }
+.ec-login .el-login-story { display: flex; flex-direction: column; justify-content: space-between; padding: 42px 45px 32px; background: #eee8fb; min-width: 0; }
 .ec-login .el-login-story .el-eyebrow { margin-bottom: 16px; }
 .ec-login .el-login-story h2 { font-size: 43px; line-height: 1.15; letter-spacing: -1.6px; }
-.ec-login .el-login-story h2 em { font-family: Georgia, serif; font-weight: 400; color: #66864f; }
-.ec-login .el-login-story > div:first-child > p:last-child { max-width: 335px; margin-top: 18px; font-size: 13px; color: #667b59; line-height: 1.85; }
+.ec-login .el-login-story h2 em { font-family: Georgia, serif; font-weight: 400; color: #66708a; }
+.ec-login .el-login-story > div:first-child > p:last-child { max-width: 335px; margin-top: 18px; font-size: 13px; color: #66708a; line-height: 1.85; }
 .ec-login .el-learning-art { margin: 10px auto 5px; max-height: 255px; }
-.ec-login .el-login-story-bottom { border-top: 1px solid #d3dfc6; padding-top: 20px; }
-.ec-login .el-login-story-bottom > p { font-size: 12px; line-height: 1.8; color: #667b59; }
-.ec-login .el-login-story-bottom strong { font-weight: 550; color: #3e6344; }
+.ec-login .el-login-story-bottom { border-top: 1px solid #e2dff0; padding-top: 20px; }
+.ec-login .el-login-story-bottom > p { font-size: 12px; line-height: 1.8; color: #66708a; }
+.ec-login .el-login-story-bottom strong { font-weight: 550; color: #24133f; }
 .ec-login .el-login-roles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.ec-login .el-login-roles span { border: 1px solid #d0ddc4; border-radius: 99px; padding: 4px 11px; background: #f4f7ee; color: #5e7852; font-size: 10px; }
+.ec-login .el-login-roles span { border: 1px solid #e2dff0; border-radius: 99px; padding: 4px 11px; background: #f7f6fc; color: #66708a; font-size: 10px; }
 .ec-login .el-login-form-panel { padding: 48px 52px 40px; min-width: 0; }
-.ec-login .el-login-welcome-icon { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #e1e9d7; border-radius: 13px; background: #f0f5e9; color: #5f7e4d; margin-bottom: 24px; }
+.ec-login .el-login-welcome-icon { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #eee8fb; border-radius: 13px; background: #f7f6fc; color: #66708a; margin-bottom: 24px; }
 .ec-login .el-login-form-heading .el-eyebrow { margin-bottom: 10px; }
 .ec-login .el-login-form-heading h1 { font-size: 31px; letter-spacing: -1px; line-height: 1.3; }
 .ec-login .el-login-form-heading > p:last-child { font-size: 12px; color: var(--el-muted); margin-top: 10px; max-width: 325px; }
@@ -26,28 +26,28 @@
 .ec-login .el-login-field + .el-login-field { margin-top: 21px; }
 .ec-login .el-login-field > label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
 .ec-login .el-login-input-wrap { position: relative; }
-.ec-login .el-login-input { width: 100%; min-height: 49px; border: 1px solid #dce4d5; background: #fff; border-radius: 9px; color: #2c4938; padding: 12px 14px 12px 43px; font-size: 13px; box-shadow: none; }
-.ec-login .el-login-input::placeholder { color: #93a08e; }
-.ec-login .el-login-input:focus { border-color: #68875a; --tw-ring-color: #68875a; }
+.ec-login .el-login-input { width: 100%; min-height: 49px; border: 1px solid #eee8fb; background: #fff; border-radius: 9px; color: #24133f; padding: 12px 14px 12px 43px; font-size: 13px; box-shadow: none; }
+.ec-login .el-login-input::placeholder { color: #66708a; }
+.ec-login .el-login-input:focus { border-color: #66708a; --tw-ring-color: #66708a; }
 .ec-login .el-login-input[aria-invalid="true"] { border-color: #b25940; }
-.ec-login .el-login-input-icon { position: absolute; top: 0; left: 14px; height: 49px; display: flex; align-items: center; color: #86977b; pointer-events: none; }
+.ec-login .el-login-input-icon { position: absolute; top: 0; left: 14px; height: 49px; display: flex; align-items: center; color: #66708a; pointer-events: none; }
 .ec-login .el-login-input-icon .ec-icon { width: 17px; height: 17px; }
 .ec-login .el-login-password { padding-right: 53px; }
-.ec-login .el-login-password-toggle { position: absolute; top: 3px; bottom: 3px; right: 3px; display: grid; place-items: center; width: 44px; border-radius: 7px; color: #7b8e6d; }
-.ec-login .el-login-password-toggle:hover { background: #f2f6eb; color: var(--el-green); }
-.ec-login .el-login-hint { margin-top: 8px; color: #798573; font-size: 10px; }
+.ec-login .el-login-password-toggle { position: absolute; top: 3px; bottom: 3px; right: 3px; display: grid; place-items: center; width: 44px; border-radius: 7px; color: #66708a; }
+.ec-login .el-login-password-toggle:hover { background: #f7f6fc; color: var(--el-primary); }
+.ec-login .el-login-hint { margin-top: 8px; color: #66708a; font-size: 10px; }
 .ec-login .el-login-error { margin-top: 8px; color: #a2442e; font-size: 12px; }
 .ec-login .el-login-options { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 18px; font-size: 12px; }
-.ec-login .el-login-options > label { display: flex; gap: 9px; align-items: center; min-height: 44px; color: #637259; cursor: pointer; }
-.ec-login .el-login-options input { border: 1px solid #cdd9c2; border-radius: 4px; width: 16px; height: 16px; color: var(--el-green); --tw-ring-color: #68875a; }
-.ec-login .el-login-options a { color: var(--el-green); text-decoration: underline; text-underline-offset: 3px; }
+.ec-login .el-login-options > label { display: flex; gap: 9px; align-items: center; min-height: 44px; color: #66708a; cursor: pointer; }
+.ec-login .el-login-options input { border: 1px solid #e2dff0; border-radius: 4px; width: 16px; height: 16px; color: var(--el-primary); --tw-ring-color: #66708a; }
+.ec-login .el-login-options a { color: var(--el-primary); text-decoration: underline; text-underline-offset: 3px; }
 .ec-login .el-login-submit { width: 100%; margin-top: 17px; min-height: 49px; }
 .ec-login :is(button, input):disabled { cursor: not-allowed; opacity: .6; }
-.ec-login .el-login-help { display: flex; gap: 10px; border-top: 1px solid #e9eee2; padding-top: 24px; margin-top: 29px; font-size: 11px; color: #7a8871; }
-.ec-login .el-login-help .ec-icon { width: 17px; height: 17px; margin-top: 2px; color: #87a174; }
-.ec-login .el-login-help strong { color: #596e4f; font-weight: 550; }
-.ec-login .el-login-notice { padding: 12px; border: 1px solid #d6e4cb; background: #f0f6e9; border-radius: 9px; color: #4e713c; font-size: 12px; margin-top: 20px; }
-.ec-login .el-login-footer { padding-top: 28px; font-size: 10px; color: #83907c; }
+.ec-login .el-login-help { display: flex; gap: 10px; border-top: 1px solid #eee8fb; padding-top: 24px; margin-top: 29px; font-size: 11px; color: #66708a; }
+.ec-login .el-login-help .ec-icon { width: 17px; height: 17px; margin-top: 2px; color: #66708a; }
+.ec-login .el-login-help strong { color: #66708a; font-weight: 550; }
+.ec-login .el-login-notice { padding: 12px; border: 1px solid #e2dff0; background: #f7f6fc; border-radius: 9px; color: #66708a; font-size: 12px; margin-top: 20px; }
+.ec-login .el-login-footer { padding-top: 28px; font-size: 10px; color: #66708a; }
 .ec-login .el-login-spinner { width: 16px; height: 16px; border: 2px solid #ffffff60; border-top-color: white; border-radius: 50%; animation: el-login-spin .8s linear infinite; }
 @keyframes el-login-spin { to { transform: rotate(360deg); } }
 @media (max-width: 1000px) {

@@ -12,6 +12,13 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::post('/language', function (Request $request) {
+    $data = $request->validate(['locale' => ['required', \Illuminate\Validation\Rule::in(['id', 'en'])]]);
+    $request->session()->put('locale', $data['locale']);
+
+    return back(303)->withCookie(cookie('ec_locale', $data['locale'], 60 * 24 * 365, '/', null, $request->isSecure(), true));
+})->name('locale.update');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

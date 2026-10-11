@@ -1,0 +1,21 @@
+.ec-language { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 3px 8px; border: 1px solid #ddd6fe; border-radius: 12px; background: white; color: #5b21b6; }
+.ec-language label { display: flex; align-items: center; }
+.ec-language svg { width: 18px; height: 18px; }
+.ec-language select { min-height: 36px; max-width: 126px; border: 0; border-radius: 8px; background-color: white; font-size: 12px; color: #374151; padding-block: 5px; padding-left: 3px; }
+.ec-language select:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+.ec-public-actions, .ec-topbar-actions { display: flex; align-items: center; gap: 12px; }
+@media (max-width: 760px) {
+    .ec-landing .el-header-inner .ec-public-actions { grid-column: 2; grid-row: 1; }
+    .ec-landing .el-header-action { grid-column: auto; grid-row: auto; }
+    .ec-public-actions { gap: 6px; }
+    .ec-language { padding-inline: 4px; gap: 3px; }
+    .ec-language select { max-width: 100px; font-size: 11px; }
+    .ec-topbar-actions .ec-topbar-user { display: none; }
+    .ec-login .el-login-header { flex-wrap: wrap; gap: 12px; }
+}
+@media (max-width: 440px) {
+    .ec-landing .el-header-inner { grid-template-columns: 1fr; }
+    .ec-landing .el-header-inner .ec-public-actions { grid-column: 1; grid-row: 2; justify-content: space-between; }
+    .ec-landing .el-header nav { grid-row: 3; }
+    .ec-landing :is(section[id], main[id]) { scroll-margin-top: 200px; }
+}

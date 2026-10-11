@@ -107,7 +107,7 @@ class ActivityController extends Controller {
             'attendances.*.status' => ['required', Rule::in(array_keys(Attendance::STATUSES))],
         ]);
         $service->record($activity, $request->user(), $data['attendances']);
-        return back()->with('success', 'Presensi '.count($data['attendances']).' siswa disimpan.');
+        return back()->with('success', __('Presensi :count siswa disimpan.', ['count' => count($data['attendances'])]));
     }
 
     public function destroy(Activity $activity) {

@@ -1,4 +1,5 @@
 import { LabelHTMLAttributes } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function InputLabel({
     value,
@@ -6,6 +7,7 @@ export default function InputLabel({
     children,
     ...props
 }: LabelHTMLAttributes<HTMLLabelElement> & { value?: string }) {
+    const { t } = useTranslation();
     return (
         <label
             {...props}
@@ -14,7 +16,7 @@ export default function InputLabel({
                 className
             }
         >
-            {value ? value : children}
+            {value ? t(value) : children}
         </label>
     );
 }

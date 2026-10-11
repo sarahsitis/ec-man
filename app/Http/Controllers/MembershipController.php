@@ -49,14 +49,14 @@ class MembershipController extends Controller {
             if ($duplicates) { throw ValidationException::withMessages(['student_ids' => 'Sebagian siswa sudah terdaftar pada semester ini. Muat ulang daftar sebelum menambahkan.']); }
             foreach ($students as $student) {
                 if ($student->user->isPembina() || ($data['status'] === 'active' && $student->status !== 'active')) {
-                    throw ValidationException::withMessages(['student_ids' => $student->full_name.' tidak dapat didaftarkan sebagai anggota aktif. Periksa status siswa.']);
+                    throw ValidationException::withMessages(['student_ids' => __(':name tidak dapat didaftarkan sebagai anggota aktif. Periksa status siswa.', ['name' => $student->full_name])]);
                 }
             }
             foreach ($students as $student) {
                 Membership::create(['student_id' => $student->id, 'academic_year_id' => $data['academic_year_id'], 'class_name' => $student->class_name, 'status' => $data['status']]);
             }
         });
-        return back()->with('success', count($data['student_ids']).' keanggotaan ditambahkan.');
+        return back()->with('success', __(':count keanggotaan ditambahkan.', ['count' => count($data['student_ids'])]));
     }
 
     public function update(Request $request, Membership $membership) {

@@ -49,7 +49,7 @@ class AssessmentController extends Controller {
         ]);
         $service->delegate($request->user(), $data);
         $studentIds = $data['student_ids'] ?? [$data['student_id']];
-        return back()->with('success', 'Penugasan untuk '.count($studentIds).' siswa dibuat.');
+        return back()->with('success', __('Penugasan untuk :count siswa dibuat.', ['count' => count($studentIds)]));
     }
 
     public function reviewQueue(Request $request) {
