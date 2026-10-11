@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Activity extends Model
 {
     public const STATUSES = ['scheduled' => 'Terjadwal', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan'];
+
     protected $fillable = [
         'academic_year_id',
         'title',
@@ -50,5 +52,21 @@ class Activity extends Model
     public function scheme(): BelongsTo
     {
         return $this->belongsTo(ActivityScheme::class, 'activity_scheme_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ActivityAttachment::class);
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isPembina() || $user->isPanitia()) {
+            return $query;
+        }
+        $studentId = $user->student?->id;
+
+        return $query->where(fn ($q) => $q->whereHas('academicYear.memberships', fn ($m) => $m->where('student_id', $studentId))
+            ->orWhereHas('attendances', fn ($a) => $a->where('student_id', $studentId)));
     }
 }

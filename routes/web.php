@@ -36,6 +36,10 @@ Route::get('/dashboard', function (Request $request) {
 Route::middleware('auth')->group(function () {
     Route::get('/kegiatan', [ActivityController::class, 'index'])->name('activities.index');
     Route::post('/kegiatan/{activity}/presensi', [ActivityController::class, 'recordAttendance'])->name('activities.attendance');
+    Route::post('/kegiatan/{activity}/berkas', [\App\Http\Controllers\ActivityAttachmentController::class, 'store'])->name('activities.attachments.store');
+    Route::get('/kegiatan/{activity}/berkas/{attachment}/unduh', [\App\Http\Controllers\ActivityAttachmentController::class, 'download'])->name('activities.attachments.download');
+    Route::get('/kegiatan/{activity}/berkas/{attachment}/pratinjau', [\App\Http\Controllers\ActivityAttachmentController::class, 'preview'])->name('activities.attachments.preview');
+    Route::delete('/kegiatan/{activity}/berkas/{attachment}', [\App\Http\Controllers\ActivityAttachmentController::class, 'destroy'])->name('activities.attachments.destroy');
     Route::get('/pre-test', [PreTestController::class, 'index'])->name('pretests.index');
     Route::post('/pre-test', [PreTestController::class, 'store'])->name('pretests.store');
     Route::get('/pre-test/siswa/{student}', [PreTestController::class, 'show'])->name('pretests.show');
@@ -54,6 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware([\App\Http\Middleware\EnsurePembina::class])->group(function () {
+        Route::get('/laporan/arsip', [\App\Http\Controllers\DataTransferController::class, 'index'])->name('data-transfer.index');
+        Route::get('/laporan/arsip/ekspor', [\App\Http\Controllers\DataTransferController::class, 'export'])->name('data-transfer.export');
+        Route::get('/laporan/arsip/template', [\App\Http\Controllers\DataTransferController::class, 'template'])->name('data-transfer.template');
+        Route::get('/laporan/arsip/cetak', [\App\Http\Controllers\DataTransferController::class, 'print'])->name('data-transfer.print');
+        Route::post('/laporan/arsip/pratinjau', [\App\Http\Controllers\DataTransferController::class, 'preview'])->name('data-transfer.preview');
+        Route::post('/laporan/arsip/impor', [\App\Http\Controllers\DataTransferController::class, 'import'])->name('data-transfer.import');
+        Route::delete('/laporan/arsip/pratinjau', [\App\Http\Controllers\DataTransferController::class, 'cancel'])->name('data-transfer.cancel');
         Route::resource('panitia-ec', \App\Http\Controllers\CommitteeRoleController::class)
             ->only(['index', 'store', 'update', 'destroy'])->names('committee-roles')->parameters(['panitia-ec' => 'committeeRole']);
         Route::get('/tahun-ajaran', [AcademicYearController::class, 'index'])->name('academic-years.index');

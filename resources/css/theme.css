@@ -51,6 +51,30 @@
 .ec-action.ec-action:disabled, .ec-action.ec-action[aria-disabled="true"] { background: #eef0f7; border-color: #d7dce9; color: #727c92; cursor: not-allowed; box-shadow: none; }
 .ec-action.ec-action .ec-icon { width: 15px; height: 15px; }
 
+.ec-import-file.ec-import-file {
+    max-width: 100%;
+    padding: 6px;
+    border: 1px solid #eee8fb;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+}
+.ec-import-file::file-selector-button {
+    min-height: 36px;
+    margin-right: 12px;
+    padding: 8px 14px;
+    border: 1px solid #f9a8d4;
+    border-radius: 12px;
+    background: var(--ec-secondary-soft);
+    color: var(--ec-secondary-strong);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease;
+}
+.ec-import-file:not(:disabled)::file-selector-button:hover { background: #fbcfe8; border-color: #f472b6; }
+.ec-import-file:disabled, .ec-import-file:disabled::file-selector-button { cursor: not-allowed; opacity: .55; }
+
 .ec-workspace .ec-btn { background: var(--ec-secondary-soft); border-color: #f9a8d4; color: var(--ec-secondary-strong); }
 .ec-workspace .ec-btn:hover { background: #fbcfe8; }
 .ec-workspace .ec-btn-primary { background: var(--ec-blue); border-color: var(--ec-blue); color: white; }
@@ -108,5 +132,6 @@
 .ec-chart-baseline-label { color: #ab145b; }
 
 @media (prefers-reduced-motion: reduce) {
+    .ec-import-file::file-selector-button { transition: none; }
     .ec-action.ec-action { transition: none; }
 }

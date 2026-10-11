@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
 use App\Models\Activity;
+use App\Models\ActivityAttachment;
 use App\Models\ActivityScheme;
 use App\Models\Attendance;
 use App\Services\AttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -19,12 +21,7 @@ class ActivityController extends Controller {
     }
 
     private function scope($query, Request $request) {
-        if (!$this->staff($request)) {
-            $studentId = $request->user()->student?->id;
-            $query->where(fn ($q) => $q->whereHas('academicYear.memberships', fn ($m) => $m->where('student_id', $studentId))
-                ->orWhereHas('attendances', fn ($a) => $a->where('student_id', $studentId)));
-        }
-        return $query;
+        return $query->visibleTo($request->user());
     }
 
     public function index(Request $request) {
@@ -91,6 +88,19 @@ class ActivityController extends Controller {
         $staff = $this->staff($request);
         return Inertia::render('Activities/Show', [
             'activity' => $activity->load(['academicYear', 'creator:id,name']),
+            'attachments' => $activity->attachments()->latest('id')->get()->map(fn ($file) => [
+                'id' => $file->id, 'kind' => $file->kind, 'name' => $file->original_name, 'size' => $file->size,
+                'mime_type' => $file->mime_type, 'description' => $file->description, 'uploader_name' => $file->uploader_name,
+                'created_at' => $file->created_at->toIso8601String(),
+                'download_url' => route('activities.attachments.download', [$activity, $file]),
+                'preview_url' => $file->isImage() ? route('activities.attachments.preview', [$activity, $file]) : null,
+                'can_delete' => $request->user()->isPembina() || ($request->user()->isPanitia() && $file->uploaded_by === $request->user()->id),
+            ]),
+            'attachmentOptions' => [
+                'kinds' => ActivityAttachment::KINDS, 'extensions' => ActivityAttachment::EXTENSIONS,
+                'maxFiles' => ActivityAttachment::MAX_FILES, 'maxFileMb' => ActivityAttachment::MAX_FILE_KB / 1024,
+                'maxBatchMb' => ActivityAttachment::MAX_BATCH_KB / 1024,
+            ],
             'students' => $staff ? $service->roster($activity)->select('id', 'full_name', 'student_number', 'class_name', 'status')->orderBy('full_name')->get() : [],
             'attendances' => $staff ? $activity->attendances()->with('recorder:id,name')->get() : [],
             'myAttendance' => $staff ? null : $activity->attendances()->where('student_id', $request->user()->student?->id)->first(),
@@ -111,11 +121,15 @@ class ActivityController extends Controller {
     }
 
     public function destroy(Activity $activity) {
-        DB::transaction(function () use ($activity) {
+        $paths = DB::transaction(function () use ($activity) {
             $item = Activity::lockForUpdate()->findOrFail($activity->id);
             if ($item->attendances()->exists()) { throw ValidationException::withMessages(['activity' => 'Kegiatan memiliki riwayat presensi. Gunakan status dibatalkan agar riwayat tetap tersimpan.']); }
+            $paths = $item->attachments()->pluck('path')->all();
             $item->delete();
+
+            return $paths;
         });
+        Storage::disk('local')->delete($paths);
         return redirect()->route('activities.index')->with('success', 'Kegiatan dihapus.');
     }
 }

@@ -1,6 +1,6 @@
 import { useTranslation } from '@/i18n/useTranslation';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AcademicYear, ManagementNav, yearLabel } from '@/Components/ManagementUi';
+import { AcademicYear, yearLabel } from '@/Components/ManagementUi';
 import { panel, field, Paging, Paginator } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -11,7 +11,7 @@ export default function Index({ years, defaults }: { years: Paginator<AcademicYe
     const { t, locale, dateLocale } = useTranslation();
     const form = useForm({ ...defaults, is_active: true });
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Tahun Ajaran")}</h2>}>
-        <Head title={t("Tahun Ajaran")} /><div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
+        <Head title={t("Tahun Ajaran")} /><div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
             <div className={panel}><h3 className="text-lg font-semibold">{t("Tambah tahun ajaran dan semester")}</h3><p className="mt-2 text-sm text-gray-500">{t("Keanggotaan dan kegiatan dicatat per semester. Semester aktif menjadi pilihan awal pada formulir.")}</p>
                 <form className="mt-4 space-y-4" onSubmit={e=>{e.preventDefault(); form.post(route('academic-years.store'), { onSuccess: ()=>form.clearErrors() });}}>
                     <div><InputLabel htmlFor="year_name" value={t("Tahun ajaran")} /><input id="year_name" className={field} required pattern="[0-9]{4}/[0-9]{4}" placeholder="2026/2027" value={form.data.name} onChange={e=>form.setData('name', e.target.value)} /><InputError message={form.errors.name} /></div>

@@ -1,6 +1,7 @@
 import { useTranslation } from '@/i18n/useTranslation';
+import DataTransferActions from '@/Components/DataTransferActions';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ManagedStudent, ManagementNav } from '@/Components/ManagementUi';
+import { ManagedStudent } from '@/Components/ManagementUi';
 import { panel, field, Paging, Paginator } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -19,7 +20,7 @@ export default function Index({ students, statuses, filters }: { students: Pagin
     const allSelected = students.data.length > 0 && students.data.every(s=>form.data.student_ids.includes(s.id));
     const toggle = (id: number) => form.setData('student_ids', form.data.student_ids.includes(id) ? form.data.student_ids.filter(value=>value!==id) : [...form.data.student_ids, id]);
     return <AuthenticatedLayout header={<div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Kelola Siswa")}</h2><Link href={route('students.create')} className="ec-action ec-action-primary">{t("Tambah siswa")}</Link></div>}>
-        <Head title={t("Kelola Siswa")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
+        <Head title={t("Kelola Siswa")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><DataTransferActions dataset="students" />
             <div className={panel}>
                 <form className="flex flex-wrap items-end gap-3" onSubmit={e=>{e.preventDefault(); router.get(route('students.index'), { search, status, per_page: students.per_page });}}><div className="flex-1"><InputLabel htmlFor="student_search" value={t("Cari nama, NIS, atau kelas")} /><input id="student_search" className={field} type="search" maxLength={100} value={search} onChange={e=>setSearch(e.target.value)} /></div><div><InputLabel htmlFor="student_filter_status" value={t("Status siswa")} /><select id="student_filter_status" className={field} value={status} onChange={e=>setStatus(e.target.value)}><option value="all">{t("Semua")}</option>{Object.entries(statuses).map(([key,label])=><option key={key} value={key}>{t(label)}</option>)}</select></div><PrimaryButton>{t("Terapkan")}</PrimaryButton></form>
                 <form className="my-5 flex flex-wrap items-end gap-3 rounded bg-gray-50 p-4 text-gray-800" onSubmit={e=>{e.preventDefault(); form.post(route('students.bulk-status'), { onSuccess: ()=>form.reset('student_ids') });}}><div><InputLabel htmlFor="bulk_student_status" value={t('Ubah status :count siswa dipilih', { count: form.data.student_ids.length })} /><select id="bulk_student_status" className={field} value={form.data.status} onChange={e=>form.setData('status', e.target.value)}>{Object.entries(statuses).map(([key,label])=><option key={key} value={key}>{t(label)}</option>)}</select></div><PrimaryButton disabled={form.processing || !form.data.student_ids.length}>{t("Simpan status massal")}</PrimaryButton><InputError message={form.errors.student_ids} /><InputError message={form.errors.status} /></form>

@@ -1,8 +1,9 @@
 import { useTranslation } from '@/i18n/useTranslation';
+import ActivityAttachments, { ActivityAttachment, AttachmentOptions } from '@/Components/ActivityAttachments';
 import ClientTablePaging from '@/Components/ClientTablePaging';
 import useTablePagination from '@/hooks/useTablePagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Activity, Attendance, ManagedStudent, ManagementNav, StatusBadge, activityDate, yearLabel } from '@/Components/ManagementUi';
+import { Activity, Attendance, ManagedStudent, StatusBadge, activityDate, yearLabel } from '@/Components/ManagementUi';
 import { panel, field } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -10,9 +11,10 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Show({ activity, students, attendances, myAttendance, attendanceStatuses, activityStatuses }: {
+export default function Show({ activity, students, attendances, myAttendance, attendanceStatuses, activityStatuses, attachments, attachmentOptions }: {
     activity: Activity; students: ManagedStudent[]; attendances: Attendance[]; myAttendance: Attendance | null;
     attendanceStatuses: Record<string, string>; activityStatuses: Record<string, string>;
+    attachments: ActivityAttachment[]; attachmentOptions: AttachmentOptions;
 }) {
     const { t, locale, dateLocale } = useTranslation();
     const page = usePage(); const user = page.props.auth.user;
@@ -37,7 +39,7 @@ export default function Show({ activity, students, attendances, myAttendance, at
     const counts = Object.keys(attendanceStatuses).map(status=>({status,total:students.filter(s=>(saved.get(s.id)?.status || 'belum_diisi')===status).length}));
     const errors: Record<string,string | undefined> = form.errors;
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{activity.title}</h2>}>
-        <Head title={activity.title} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav /><Link className="ec-action ec-action-secondary" href={route('activities.index')}>{t("Kembali ke kegiatan")}</Link>
+        <Head title={activity.title} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><Link className="ec-action ec-action-secondary" href={route('activities.index')}>{t("Kembali ke kegiatan")}</Link>
             <div className={panel}><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-lg font-semibold">{activity.title}</h3><p className="mt-1 text-sm text-gray-500">{activity.category} · {yearLabel(activity.academic_year, locale)}</p></div><StatusBadge status={activity.status} labels={activityStatuses} /></div>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2"><p>{activityDate(activity.activity_date, locale)} · {activity.start_time.slice(0,5)}{activity.end_time && `–${activity.end_time.slice(0,5)}`} WIB</p><p>{t("Lokasi:")} {activity.location || t('Belum diisi')}</p><p>{t("Penanggung jawab:")} {activity.pic || t('Belum diisi')}</p><p>{t("Sasaran:")} {activity.target_audience || 'Anggota semester kegiatan'}</p></div>
                 {activity.description && <p className="mt-4 whitespace-pre-wrap">{activity.description}</p>}
@@ -45,6 +47,7 @@ export default function Show({ activity, students, attendances, myAttendance, at
                 {pembina && <div className="mt-5 flex gap-4"><Link className="ec-action ec-action-edit" href={route('activities.edit',activity.id)}>{t("Edit kegiatan")}</Link><button className="ec-action ec-action-danger" onClick={()=>{if(window.confirm(t("Hapus kegiatan :value1? Kegiatan yang memiliki riwayat presensi perlu dibatalkan.", { value1: activity.title }))) router.delete(route('activities.destroy',activity.id));}}>{t("Hapus kegiatan")}</button></div>}
                 <InputError message={page.props.errors.activity} />
             </div>
+            <ActivityAttachments activityId={activity.id} attachments={attachments} options={attachmentOptions} canUpload={staff} />
             {!staff ? <div className={panel}><h3 className="font-semibold">{t("Presensi saya")}</h3><div className="mt-3"><StatusBadge status={myAttendance?.status || 'belum_diisi'} labels={attendanceStatuses} /></div></div> : <div className={panel}>
                 <h3 className="text-lg font-semibold">{t("Presensi peserta")}</h3><p className="mt-2 text-sm text-gray-500">{t("Daftar berasal dari anggota aktif semester kegiatan. Siswa yang sudah memiliki catatan tetap ditampilkan untuk koreksi riwayat. Siswa yang belum dicatat tidak otomatis dianggap alpa.")}</p>
                 <div className="my-4 flex flex-wrap gap-3">{counts.map(c=><span key={c.status} className="rounded bg-gray-100 px-3 py-2 text-sm text-gray-800">{attendanceStatuses[c.status]}: {c.total}</span>)}</div>

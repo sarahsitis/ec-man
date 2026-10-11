@@ -1,6 +1,7 @@
 import { useTranslation } from '@/i18n/useTranslation';
+import DataTransferActions from '@/Components/DataTransferActions';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AcademicYear, ManagedStudent, Membership, ManagementNav, StatusBadge, yearLabel } from '@/Components/ManagementUi';
+import { AcademicYear, ManagedStudent, Membership, StatusBadge, yearLabel } from '@/Components/ManagementUi';
 import { panel, field, Paging, Paginator } from '@/Components/AssessmentUi';
 import StudentPicker from '@/Components/StudentPicker';
 import InputError from '@/Components/InputError';
@@ -24,7 +25,7 @@ export default function Index({ memberships, years, students, statuses, filters 
     const errors: Record<string, string | undefined> = form.errors;
     const filter = (year = filters.academic_year_id) => router.get(route('memberships.index'), { academic_year_id: year, search, status, per_page: memberships.per_page });
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Keanggotaan Siswa")}</h2>}>
-        <Head title={t("Keanggotaan Siswa")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
+        <Head title={t("Keanggotaan Siswa")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6"><DataTransferActions dataset="memberships" academicYearId={filters.academic_year_id} />
             {years.length===0 ? <div className={panel}>{t("Tambahkan tahun ajaran dan semester sebelum mendaftarkan anggota.")} <Link className="ec-action ec-action-edit" href={route('academic-years.index')}>{t("Kelola tahun ajaran")}</Link></div> : <>
                 <div className={panel}><InputLabel htmlFor="membership_year" value={t("Tahun ajaran dan semester")} /><select id="membership_year" className={field} value={filters.academic_year_id || ''} onChange={e=>filter(Number(e.target.value))}>{years.map(year=><option key={year.id} value={year.id}>{yearLabel(year, locale)}</option>)}</select><p className="mt-2 text-sm text-gray-500">{t("Status keanggotaan berlaku untuk semester ini. Status siswa pada profil tetap ditampilkan untuk membedakan riwayat semester dan kondisi siswa saat ini.")}</p></div>
                 <div className={panel}><h3 className="text-lg font-semibold">{t("Daftarkan anggota sekaligus")}</h3>

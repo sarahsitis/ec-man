@@ -5,7 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import StudentContactFields, { ContactData } from '@/Components/StudentContactFields';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ManagementNav, studentStatuses } from '@/Components/ManagementUi';
+import { studentStatuses } from '@/Components/ManagementUi';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
@@ -32,7 +32,7 @@ export default function MemberForm({ student }: { student?: Member }) {
     };
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{title}</h2>}>
         <Head title={title} />
-        <div className="py-12"><div className="mx-auto max-w-2xl space-y-6 px-4 sm:px-6"><ManagementNav /><div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800 dark:text-gray-100">
+        <div className="py-12"><div className="mx-auto max-w-2xl space-y-6 px-4 sm:px-6"><div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800 dark:text-gray-100">
             <form onSubmit={submit} className="space-y-6">
                 <div><InputLabel htmlFor="student_number" value={t("NIS")} />
                     <TextInput id="student_number" value={form.data.student_number} maxLength={255} onChange={e => form.setData('student_number', e.target.value)} required className="mt-1 block w-full" />

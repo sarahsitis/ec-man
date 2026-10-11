@@ -1,5 +1,4 @@
 import { useTranslation } from '@/i18n/useTranslation';
-import { Link, usePage } from '@inertiajs/react';
 
 export interface AcademicYear { id: number; name: string; semester: string; is_active: boolean; memberships_count?: number; activities_count?: number }
 export interface ManagedStudent { id: number; full_name: string; student_number: string; class_name: string | null; status: string }
@@ -18,16 +17,4 @@ export function activityDate(value: string, locale: 'id' | 'en' = 'id') { return
 export function StatusBadge({ status, labels = studentStatuses }: { status: string; labels?: Record<string, string> }) {
     const { t, locale, dateLocale } = useTranslation();
     return <span className={`inline-block rounded-full px-2 py-1 text-xs ${['active', 'hadir', 'completed'].includes(status) ? 'bg-green-100 text-green-900' : ['left', 'cancelled', 'alpa'].includes(status) ? 'bg-red-100 text-red-900' : 'bg-gray-100 text-gray-800'}`}>{t(labels[status] || status)}</span>;
-}
-export function ManagementNav() {
-    const { t, locale, dateLocale } = useTranslation();
-    const user = usePage().props.auth.user;
-    if (user.role !== 'pembina') { return null; }
-    return <nav aria-label={t("Manajemen EC")} className="flex flex-wrap gap-2">{[
-        ['students.index', t("Data siswa"), 'students.*'], ['memberships.index', t("Keanggotaan"), 'memberships.*'],
-        ['academic-years.index', t("Tahun ajaran"), 'academic-years.*'], ['activities.index', t("Kegiatan & Presensi"), 'activities.*'],
-        ['activity-schemes.index', t("Skema kegiatan"), 'activity-schemes.*'],
-        ['committee-roles.index', t("Panitia EC"), 'committee-roles.*'],
-        ['reports.interests', t("Laporan minat"), 'reports.interests'],
-    ].map(([name, label, match]) => <Link key={name} href={route(name)} aria-current={route().current(match) ? 'page' : undefined} className="ec-action ec-action-secondary">{t(label)}</Link>)}</nav>;
 }

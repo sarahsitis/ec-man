@@ -1,4 +1,5 @@
 import { useTranslation } from '@/i18n/useTranslation';
+import DataTransferActions from '@/Components/DataTransferActions';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -34,6 +35,7 @@ export default function Index({ assignments, students, assessors, aspects, pendi
     const pending = pendingCount;
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Penugasan dan Penilaian")}</h2>}>
         <Head title={t("Penugasan dan Penilaian")} /><div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
+            <DataTransferActions dataset="scores" />
             <div className={panel}><div className="flex flex-wrap items-center justify-between gap-4"><div><h3 className="text-lg font-semibold">{pending}  {t("rekomendasi menunggu pemeriksaan")}</h3><p className="mt-1 text-sm text-gray-500">{t("Periksa rekomendasi, minta revisi, atau sahkan menjadi nilai resmi siswa.")}</p></div><Link href={route('assessments.queue')} className="rounded bg-indigo-600 px-4 py-2 font-medium text-white">{t("Buka antrean pemeriksaan")}</Link></div></div>
             <div className={panel}><h3 className="text-lg font-semibold">{t("Buat penugasan panitia")}</h3><p className="mt-1 text-sm text-gray-500">{t("Pilih satu panitia untuk menilai beberapa siswa sekaligus. Skor dan catatan penilaian disimpan per siswa. Gunakan judul berbeda untuk tugas atau pertemuan yang berbeda.")}</p>
                 {assessors.length === 0 && <p className="mt-3 text-amber-700">{t("Belum ada panitia aktif. Angkat siswa kelas XI/XII dan atur masa tugas melalui menu Panitia EC.")}</p>}

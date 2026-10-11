@@ -20,6 +20,7 @@ const paths = {
     save: <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z" /><path d="M7 3v6h10V3M7 21v-8h10v8" /></>,
     send: <path d="m22 2-7 20-4-9-9-4 20-7Zm0 0L11 13" />,
     menu: <path d="M4 6h16M4 12h16M4 18h16" />,
+    chevron: <path d="m6 9 6 6 6-6" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
     shield: <><path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6l8-4Z" /><path d="m8 12 3 3 5-6" /></>,
     logout: <><path d="M12 3v9" /><path d="M6.4 5.6a9 9 0 1 0 11.2 0" /></>,

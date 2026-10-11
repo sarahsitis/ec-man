@@ -1,6 +1,6 @@
 import { useTranslation } from '@/i18n/useTranslation';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AcademicYear, Activity, ActivityScheme, ManagementNav, yearLabel } from '@/Components/ManagementUi';
+import { AcademicYear, Activity, ActivityScheme, yearLabel } from '@/Components/ManagementUi';
 import { panel, field } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -28,7 +28,7 @@ export default function Form({ activity, years, schemes, statuses }: { activity:
     };
     const title = activity ? t("Edit Kegiatan") : t("Buat Kegiatan");
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{title}</h2>}>
-        <Head title={title} /><div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav /><Link className="ec-action ec-action-secondary" href={activity ? route('activities.show',activity.id) : route('activities.index')}>{t("Kembali")}</Link>
+        <Head title={title} /><div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6"><Link className="ec-action ec-action-secondary" href={activity ? route('activities.show',activity.id) : route('activities.index')}>{t("Kembali")}</Link>
             {years.length===0 ? <div className={panel}>{t("Tambahkan semester sebelum membuat kegiatan.")} <Link className="ec-action ec-action-edit" href={route('academic-years.index')}>{t("Kelola tahun ajaran")}</Link></div> : <div className={panel}>
                 <form className="grid gap-4 sm:grid-cols-2" onSubmit={e=>{e.preventDefault(); activity ? form.put(route('activities.update',activity.id)) : form.post(route('activities.store'));}}>
                     <fieldset disabled={form.processing} className="contents">

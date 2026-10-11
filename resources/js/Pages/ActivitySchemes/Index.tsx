@@ -1,6 +1,6 @@
 import { useTranslation } from '@/i18n/useTranslation';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { ActivityScheme, ManagementNav } from '@/Components/ManagementUi';
+import { ActivityScheme } from '@/Components/ManagementUi';
 import { panel, field } from '@/Components/AssessmentUi';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -15,7 +15,7 @@ export default function Index({ schemes }: { schemes: ActivityScheme[] }) {
     const pageErrors = usePage().props.errors;
     const reset = () => { setEditing(null); form.reset(); form.clearErrors(); };
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Skema Kegiatan")}</h2>}>
-        <Head title={t("Skema Kegiatan")} /><div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6"><ManagementNav />
+        <Head title={t("Skema Kegiatan")} /><div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
             <div className={panel}><h3 className="text-lg font-semibold">{editing ? t("Edit skema") : t("Buat skema kegiatan")}</h3><p className="mt-2 text-sm text-gray-500">{t("Skema merupakan template yang dapat diterapkan saat membuat kegiatan. Tujuan dan agenda disalin ke kegiatan agar catatannya tetap utuh ketika template berubah.")}</p>
                 <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={e=>{e.preventDefault(); const options = { onSuccess: reset }; editing ? form.put(route('activity-schemes.update', editing), options) : form.post(route('activity-schemes.store'), options);}}>
                     <div><InputLabel htmlFor="scheme_name" value={t("Nama skema")} /><input id="scheme_name" className={field} required maxLength={150} value={form.data.name} onChange={e=>form.setData('name', e.target.value)} placeholder={t("Latihan percakapan mingguan")} /><InputError message={form.errors.name} /></div>

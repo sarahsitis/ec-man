@@ -5,7 +5,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { field, panel } from '@/Components/AssessmentUi';
-import { activityDate, ManagementNav, StatusBadge } from '@/Components/ManagementUi';
+import { activityDate, StatusBadge } from '@/Components/ManagementUi';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
@@ -58,7 +58,6 @@ export default function Index({ appointments, candidates, today }: { appointment
     return <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{t("Panitia EC")}</h2>}>
         <Head title={t("Manajemen Panitia EC")} />
         <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
-            <ManagementNav />
             <div className={panel}>
                 <h3 className="text-lg font-semibold">{editing ? t("Edit masa tugas: :value1", { value1: editing.user.name }) : t("Angkat panitia")}</h3>
                 <p className="mt-2 text-sm text-gray-500">{t("Panitia merupakan peran tambahan untuk siswa aktif kelas XI/XII. Akses penilaian dan presensi berlaku dari tanggal mulai hingga akhir tanggal selesai (WIB). Nilai resmi tetap disahkan pembina.")}</p>
